@@ -1,0 +1,35 @@
+# depslib dependency file v1.0
+1479814796 source:e:\___classes___\418113 computer programming\breakout_template\main.cpp
+	"SDL/SDL.h"
+	"SDL/SDL_opengl.h"
+	"SDL/SDL_image.h"
+	<iostream>
+	<string>
+
+1479912544 source:e:\___classes___\418113 computer programming\breakout_template\cp_functions.c
+	"cp_functions.h"
+
+1479913519 e:\___classes___\418113 computer programming\breakout_template\cp_functions.h
+	<SDL/SDL.h>
+	<SDL/SDL_opengl.h>
+	<SDL/SDL_image.h>
+
+1479913742 source:e:\___classes___\418113 computer programming\breakout_template\main.c
+	"cp_functions.h"
+
+1480157475 source:e:\___classes___\418113 computer programming\breakout_finished\cp_functions.c
+	<stdlib.h>
+	"cp_functions.h"
+
+1480157226 e:\___classes___\418113 computer programming\breakout_finished\cp_functions.h
+	<SDL/SDL.h>
+	<SDL/SDL_opengl.h>
+	<SDL/SDL_ttf.h>
+	<SDL/SDL_image.h>
+	<SDL/SDL_mixer.h>
+
+1480168395 source:e:\___classes___\418113 computer programming\breakout_finished\main.c
+	<stdio.h>
+	<stdlib.h>
+	"cp_functions.h"
+
