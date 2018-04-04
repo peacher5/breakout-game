@@ -143,7 +143,7 @@ void cpDelay(int millisecond)
 
 int cbPollEvent(Event *event)
 {
-   SDL_PollEvent(event);
+   return SDL_PollEvent(event);
 }
 
 void cpDrawTexture(int r, int g, int b,
