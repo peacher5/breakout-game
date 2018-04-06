@@ -1,3 +1,8 @@
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #ifndef __CP_FUNCTIONS_H__
 #define __CP_FUNCTIONS_H__
 
@@ -39,10 +44,14 @@ void cpCleanUp();
 void cpSwapBuffers();
 void cpDelay(int millisecond);
 int cbPollEvent(Event *event);
-void cpDrawTexture(int r, int g, int b, 
-                   int x, int y, int width, int height, Texture texture);
+void cpDrawTextureRGB(int r, int g, int b, int x, int y, int width, int height, Texture texture);
+void cpDrawTexture(int x, int y, int width, int height, Texture texture);
 void cpDrawText(int r, int g, int b,
    int x, int y, const char *text, Font font, int center);
 void cpClearScreen();
 
 #endif // __CP_FUNCTIONS_H__
+
+#ifdef __cplusplus
+}
+#endif

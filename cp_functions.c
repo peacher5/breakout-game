@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "cp_functions.h"
+#include "headers/cp_functions.h"
 
 #define True  1
 #define False 0
@@ -146,7 +146,7 @@ int cbPollEvent(Event *event)
    return SDL_PollEvent(event);
 }
 
-void cpDrawTexture(int r, int g, int b,
+void cpDrawTextureRGB(int r, int g, int b,
    int x, int y, int width, int height, Texture texture)
 {
    glEnable(GL_TEXTURE_2D);
@@ -159,6 +159,11 @@ void cpDrawTexture(int r, int g, int b,
       glTexCoord2d(0, 1); glVertex2f(x, y + height);
    glEnd();
    glDisable(GL_TEXTURE_2D);
+}
+
+void cpDrawTexture(int x, int y, int width, int height, Texture texture)
+{
+    cpDrawTextureRGB(255, 255, 255, x, y, width, height, texture);
 }
 
 void cpDrawText(int r, int g, int b,
