@@ -1,7 +1,9 @@
 #include <iostream>
+
 #include "headers/cp_functions.h"
 #include "headers/object.h"
 #include "headers/ball.h"
+#include "headers/brick.h"
 
 #define WINDOW_TITLE  "Breakout"
 #define WINDOW_WIDTH  800
@@ -15,11 +17,6 @@ Texture paddle_texture, ball_texture, brick_texture;
 Texture in_game_bg_texture, in_game_frame_texture;
 
 Event event;
-
-void exitApp() {
-    cpCleanUp();
-    exit(0);
-}
 
 bool loadResources() {
     // Font
@@ -48,6 +45,8 @@ bool loadResources() {
 
 Object paddle(0, 0, 124, 18);
 Ball ball(0, 0, 20, 20, 0, 0);
+Brick bricks[100];
+int n_bricks;
 
 void drawInGameTexture() {
     // In-game Background
@@ -58,15 +57,34 @@ void drawInGameTexture() {
     paddle.drawTexture(paddle_texture);
     // Ball
     ball.drawTexture(ball_texture);
+    // Bricks
+    for (int i = 0; i < n_bricks; i++) {
+        if (!bricks[i].isDestroy())
+            bricks[i].drawTexture(brick_texture);
+    }
 }
 
 void showInGameScreen() {
-    // Init
+    // Init paddle
     paddle.setX(WINDOW_WIDTH / 2 - paddle.getWidth() / 2);
     paddle.setY(WINDOW_HEIGHT - 80);
 
+    // Init ball
     ball.setX(WINDOW_WIDTH / 2 - ball.getWidth() / 2);
     ball.setY(paddle.getY() - ball.getHeight() - 1);
+
+    // Init bricks for level 1
+    n_bricks = 96;
+    for (int i = 0, x = 100, y = 120; i < n_bricks; i++) {
+            bricks[i].setX(x);
+            bricks[i].setY(y);
+            bricks[i].setWidth(50);
+            bricks[i].setHeight(25);
+        if (x > WINDOW_WIDTH - 200)
+            x = 100, y += 25;
+        else
+            x += 50;
+    }
 
     while (true) {
         cpClearScreen();
@@ -76,7 +94,7 @@ void showInGameScreen() {
         // Handle events
         while (cbPollEvent(&event)) {
             if (event.type == QUIT) {
-                exitApp();
+                return;
             }
         }
         cpDelay(10);

@@ -11,6 +11,8 @@ class Object {
 
         void setX(float x);
         void setY(float y);
+        void setWidth(float width);
+        void setHeight(float height);
 
         float getX();
         float getY();

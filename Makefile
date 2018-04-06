@@ -14,11 +14,14 @@ object.o: object.cpp
 ball.o: ball.cpp
 	$(CXX) -c ball.cpp
 
+brick.o: brick.cpp
+	$(CXX) -c brick.cpp
+
 main.o: main.cpp
 	$(CXX) -c main.cpp
 
-Breakout: cp_functions.o main.o object.o ball.o
-	$(CXX) -o Breakout main.o cp_functions.o object.o ball.o $(LDFLAGS)
+Breakout: cp_functions.o main.o object.o ball.o brick.o
+	$(CXX) -o Breakout main.o cp_functions.o object.o ball.o brick.o $(LDFLAGS)
 
 clean: 
 	rm -f *.o Breakout CON

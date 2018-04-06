@@ -11,6 +11,14 @@ void Object::setY(float y) {
     y_ = y;
 }
 
+void Object::setWidth(float width) {
+    width_ = width;
+}
+
+void Object::setHeight(float height) {
+    height_ = height;
+}
+
 float Object::getX() {
     return x_;
 }

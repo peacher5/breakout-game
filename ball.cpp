@@ -1,9 +1,7 @@
 #include "headers/ball.h"
 
 Ball::Ball(float x, float y, float width, float height, float velX, float velY) :
-    Object(x, y, width, height), velX_(velX), velY_(velY) {
-        isOnScreen_ = true;
-    }
+    Object(x, y, width, height), velX_(velX), velY_(velY), isOnScreen_(true) {}
 
 void Ball::setVelX(float velX) {
     velX_ = velX;
