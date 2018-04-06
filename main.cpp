@@ -1,5 +1,7 @@
 #include <iostream>
 #include "headers/cp_functions.h"
+#include "headers/object.h"
+#include "headers/ball.h"
 
 #define WINDOW_TITLE  "Breakout"
 #define WINDOW_WIDTH  800
@@ -9,7 +11,8 @@ using namespace std;
 
 Font rsu_24_font;
 Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
-Texture paddle_texture, ball_texture, brick_texture, background_texture;
+Texture paddle_texture, ball_texture, brick_texture;
+Texture in_game_bg_texture, in_game_frame_texture;
 
 Event event;
 
@@ -32,31 +35,52 @@ bool loadResources() {
     paddle_texture = cpLoadTexture("textures/paddle.png");
     ball_texture = cpLoadTexture("textures/ball.png");
     brick_texture = cpLoadTexture("textures/brick.png");
-    background_texture = cpLoadTexture("textures/background.png");
+
+    in_game_bg_texture = cpLoadTexture("textures/in_game_bg.png");
+    in_game_frame_texture = cpLoadTexture("textures/in_game_frame.png");
 
    if (!rsu_24_font || !hit_paddle_sound || !hit_brick_sound || !hit_top_sound || !end_sound ||
-       !paddle_texture || !ball_texture || !brick_texture || !background_texture)
+       !paddle_texture || !ball_texture || !brick_texture || !in_game_bg_texture ||
+       !in_game_frame_texture)
         return false;
    return true;
 }
 
+Object paddle(0, 0, 124, 18);
+Ball ball(0, 0, 20, 20, 0, 0);
+
 void drawInGameTexture() {
-    // Level Background
-    cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, background_texture);
+    // In-game Background
+    cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_bg_texture);
+    // In-game Frame
+    cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
+    // Paddle
+    paddle.drawTexture(paddle_texture);
+    // Ball
+    ball.drawTexture(ball_texture);
 }
 
 void showInGameScreen() {
-    cpClearScreen();
-    drawInGameTexture();
-    // Update Screen
-    cpSwapBuffers();
-    // Handle events
-    while (cbPollEvent(&event)) {
-        if (event.type == QUIT) {
-            exitApp();
+    // Init
+    paddle.setX(WINDOW_WIDTH / 2 - paddle.getWidth() / 2);
+    paddle.setY(WINDOW_HEIGHT - 80);
+
+    ball.setX(WINDOW_WIDTH / 2 - ball.getWidth() / 2);
+    ball.setY(paddle.getY() - ball.getHeight() - 1);
+
+    while (true) {
+        cpClearScreen();
+        drawInGameTexture();
+        // Update Screen
+        cpSwapBuffers();
+        // Handle events
+        while (cbPollEvent(&event)) {
+            if (event.type == QUIT) {
+                exitApp();
+            }
         }
+        cpDelay(10);
     }
-    cpDelay(10);
 }
 
 int main(int argc, char *args[]) {
@@ -73,9 +97,8 @@ int main(int argc, char *args[]) {
         exit(1);
     }
 
-    while (true) {
-        showInGameScreen();
-    }
+    showInGameScreen();
 
-    exitApp();
+    cpCleanUp();
+    return 0;
 }

@@ -8,11 +8,17 @@ all: Breakout
 cp_functions.o: cp_functions.c
 	$(CC) -c cp_functions.c
 
+object.o: object.cpp
+	$(CXX) -c object.cpp
+
+ball.o: ball.cpp
+	$(CXX) -c ball.cpp
+
 main.o: main.cpp
 	$(CXX) -c main.cpp
 
-Breakout: cp_functions.o main.o
-	$(CXX) -o Breakout cp_functions.o main.o $(LDFLAGS)
+Breakout: cp_functions.o main.o object.o ball.o
+	$(CXX) -o Breakout main.o cp_functions.o object.o ball.o $(LDFLAGS)
 
 clean: 
 	rm -f *.o Breakout CON
