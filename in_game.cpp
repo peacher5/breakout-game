@@ -47,6 +47,27 @@ CollisionSide collide(Object a, Object b) {
     return NoCollide;
 }
 
+void initBricksLevel(int level) {
+    if (level == 1) {
+        n_bricks = 96;
+        for (int i = 0, x = 100, y = 120; i < n_bricks; i++) {
+                bricks[i].setX(x);
+                bricks[i].setY(y);
+                bricks[i].setWidth(50);
+                bricks[i].setHeight(25);
+                bricks[i].setDurability(1);
+            if (x > WINDOW_WIDTH - 200)
+                x = 100, y += 25;
+            else
+                x += 50;
+        }
+    } else if (level == 2) {
+
+    } else if (level == 3) {
+
+    }
+}
+
 void drawScoreText(int score) {
     for (int i = 0, x = 150; i < 5; i++, x -= 27) {
         cpDrawText(255, 255, 255, 216, x, 43, to_string(score % 10).c_str(), rsu_30_font, true);
@@ -58,7 +79,8 @@ void drawInGameTexture() {
     // In-game Background
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_bg_texture);
     // Paddle
-    paddle.drawTexture(paddle_texture);
+    if (next_scene == InGame)
+        paddle.drawTexture(paddle_texture);
     // Ball
     ball.drawTexture(ball_texture);
     // Bricks
@@ -79,7 +101,7 @@ void showInGameScene() {
     // For store event from PollEvent function
     Event event;
     // Set ball speed & start angle (0 degree = go up straight)
-    float ball_vel = 7, bounce_angle = 0;
+    float ball_vel = 9, bounce_angle = 0;
     // Set max ball angle when collide w/ paddle = 70 degee angle
     const float MAX_BOUNCE_ANGLE = 7 * M_PI / 18;
     // Temp vars for calculate angle
@@ -89,6 +111,9 @@ void showInGameScene() {
 
     // Hide mouse cursor
     setMouseVisible(false);
+
+    // Set mouse x position to center
+    setMouseX(WINDOW_WIDTH / 2);
 
     // Init paddle position
     paddle.setX(getMouseX() - paddle.getWidth() / 2);
@@ -118,18 +143,7 @@ void showInGameScene() {
     is_game_start = false;
 
     // Init bricks for level 1
-    n_bricks = 96;
-    for (int i = 0, x = 100, y = 120; i < n_bricks; i++) {
-            bricks[i].setX(x);
-            bricks[i].setY(y);
-            bricks[i].setWidth(50);
-            bricks[i].setHeight(25);
-            bricks[i].setDurability(1);
-        if (x > WINDOW_WIDTH - 200)
-            x = 100, y += 25;
-        else
-            x += 50;
-    }
+    initBricksLevel(1);
 
     while (true) {
         cpClearScreen();

@@ -4,14 +4,16 @@
 #include "headers/game_over.h"
 
 // Global shared resources
-Font rsu_24_font, rsu_30_font;
+Font rsu_20_font, rsu_24_font, rsu_30_font;
 Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
 Texture paddle_texture, ball_texture, brick_texture, in_game_bg_texture, in_game_frame_texture;
+Texture game_over_overlay_texture;
 GameScene next_scene;
 bool quit;
 
 bool loadResources() {
     // Font
+    rsu_20_font = cpLoadFont("fonts/RSU_BOLD.ttf", 20);
     rsu_24_font = cpLoadFont("fonts/RSU_BOLD.ttf", 24);
     rsu_30_font = cpLoadFont("fonts/RSU_BOLD.ttf", 30);
 
@@ -28,6 +30,8 @@ bool loadResources() {
 
     in_game_bg_texture = cpLoadTexture("textures/in_game_bg.png");
     in_game_frame_texture = cpLoadTexture("textures/in_game_frame.png");
+
+    game_over_overlay_texture = cpLoadTexture("textures/game_over_overlay.png");
 
    if (!rsu_24_font || !rsu_30_font || !hit_paddle_sound || !hit_brick_sound || !hit_top_sound ||
        !end_sound || !paddle_texture || !ball_texture || !brick_texture || !in_game_bg_texture ||
