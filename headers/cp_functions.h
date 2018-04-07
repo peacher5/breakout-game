@@ -46,7 +46,7 @@ void cpDelay(int millisecond);
 int cbPollEvent(Event *event);
 void cpDrawTextureRGB(int r, int g, int b, int x, int y, int width, int height, Texture texture);
 void cpDrawTexture(int x, int y, int width, int height, Texture texture);
-void cpDrawText(int r, int g, int b,
+void cpDrawText(int r, int g, int b, int a,
    int x, int y, const char *text, Font font, int center);
 void cpClearScreen();
 

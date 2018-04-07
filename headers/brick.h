@@ -6,7 +6,6 @@
 class Brick: public Object {
     protected:
         int durability_;
-        bool isDestroy_;
     public:
         Brick();
         Brick(float x, float y, float width, float height, int durability);
@@ -15,8 +14,6 @@ class Brick: public Object {
         void decreaseDurability();
 
         int getDurability();
-
-        bool isDestroy();
 };
 
 #endif // BRICK_H

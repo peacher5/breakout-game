@@ -1,8 +1,9 @@
 #include <cmath>
 #include "headers/global.h"
+#include <iostream>
 
 // Global shared resources from main
-extern Font rsu_24_font;
+extern Font rsu_24_font, rsu_30_font;
 extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
 extern Texture paddle_texture, ball_texture, brick_texture, in_game_bg_texture, in_game_frame_texture;
 
@@ -11,7 +12,7 @@ Object paddle(0, 0, 124, 18);
 Ball ball(0, 0, 20, 20, 0, 0);
 Brick bricks[100];
 typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
-int n_bricks;
+int n_bricks, score;
 bool is_game_start;
 
 /*  Collision Detection between two objects a and b
@@ -43,20 +44,32 @@ CollisionSide collide(Object a, Object b) {
     return NoCollide;
 }
 
+void drawScoreText(int score) {
+    char scoreDigit[2];
+    for (int i = 0, x = 150; i < 5; i++, x -= 27) {
+        sprintf(scoreDigit, "%d", score % 10);
+        cpDrawText(255, 255, 255, 216, x, 43, scoreDigit, rsu_30_font, true);
+        score /= 10;
+    }
+}
+
 void drawInGameTexture() {
     // In-game Background
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_bg_texture);
-    // In-game Frame
-    cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
     // Paddle
     paddle.drawTexture(paddle_texture);
     // Ball
     ball.drawTexture(ball_texture);
     // Bricks
     for (int i = 0; i < n_bricks; i++) {
-        if (!bricks[i].isDestroy())
+        // if durability != 0 then draw a brick
+        if (bricks[i].getDurability())
             bricks[i].drawTexture(brick_texture);
     }
+    // In-game Frame
+    cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
+    // Score
+    drawScoreText(score);
 }
 
 void showInGameScreen() {
@@ -160,7 +173,44 @@ void showInGameScreen() {
             ball.invertVelY();
         }
 
-        // When ball collide w/ paddle
+        for (int i = 0; i < n_bricks; i++) {
+            // When ball hit a brick
+            if (bricks[i].getDurability() && (side = collide(bricks[i], ball))) {
+                // Play sound
+                cpPlaySound(hit_brick_sound);
+
+                // Decrease durability by 1
+                bricks[i].decreaseDurability();
+
+                // + Score
+                score += 5;
+
+                // Prevent ball get into brick
+                switch (side) {
+                    case CollideTop:
+                        ball.setY(bricks[i].getY() - ball.getHeight() - 1);
+                        // Set ball to go up only
+                        ball.setVelY(-fabs(ball.getVelY()));
+                        break;
+                    case CollideBottom:
+                        ball.setY(bricks[i].getY() + bricks[i].getHeight() + 1);
+                        // Set ball to go down only
+                        ball.setVelY(fabs(ball.getVelY()));
+                        break;
+                    case CollideLeft:
+                        ball.setX(bricks[i].getX() - ball.getWidth() - 1);
+                        // Set ball to go only left side
+                        ball.setVelX(-fabs(ball.getVelX()));
+                        break;
+                    case CollideRight:
+                        ball.setX(bricks[i].getX() + bricks[i].getWidth() + 1);
+                        // Set ball to go only right side
+                        ball.setVelX(fabs(ball.getVelX()));
+                }
+            }
+        }
+
+        // When ball hit paddle
         if ((side = collide(paddle, ball))) {
             cpPlaySound(hit_paddle_sound);
 
@@ -173,16 +223,19 @@ void showInGameScreen() {
             ball.setVelY(-ball_vel * cos(bounce_angle));
 
             // Prevent ball get into paddle
-            if (side == CollideTop) {
-                ball.setY(paddle.getY() - ball.getHeight() - 1);
-            } else if (side == CollideLeft) {
-                ball.setX(paddle.getX() - ball.getWidth() - 1);
-                // Set ball to go only left side
-                ball.setVelX(-fabs(ball.getVelX()));
-            } else if (side == CollideRight) {
-                ball.setX(paddle.getX() + paddle.getWidth() + 1);
-                // Set ball to go only right side
-                ball.setVelX(fabs(ball.getVelX()));
+            switch (side) {
+                case CollideTop:
+                    ball.setY(paddle.getY() - ball.getHeight() - 1);
+                    break;
+                case CollideLeft:
+                    ball.setX(paddle.getX() - ball.getWidth() - 1);
+                    // Set ball to go only left side
+                    ball.setVelX(-fabs(ball.getVelX()));
+                    break;
+                case CollideRight:
+                    ball.setX(paddle.getX() + paddle.getWidth() + 1);
+                    // Set ball to go only right side
+                    ball.setVelX(fabs(ball.getVelX()));
             }
         }
 

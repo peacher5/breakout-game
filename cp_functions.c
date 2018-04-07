@@ -166,7 +166,7 @@ void cpDrawTexture(int x, int y, int width, int height, Texture texture)
     cpDrawTextureRGB(255, 255, 255, x, y, width, height, texture);
 }
 
-void cpDrawText(int r, int g, int b,
+void cpDrawText(int r, int g, int b, int a,
    int x, int y, const char *text, Font font, int center)
 {  SDL_Surface *message;
    SDL_Color color = {r, g, b};
@@ -199,7 +199,7 @@ void cpDrawText(int r, int g, int b,
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
    glTexImage2D(GL_TEXTURE_2D, 0, texture_format, message->w, message->h, 0,
       texture_format, GL_UNSIGNED_BYTE, message->pixels);
-   glColor4ub(r, g, b, 255);
+   glColor4ub(r, g, b, a);
    glBegin(GL_QUADS);
       glTexCoord2d(0, 0); glVertex2f(x + xb, y + yb);
       glTexCoord2d(1, 0); glVertex2f(x + xe, y + yb);
