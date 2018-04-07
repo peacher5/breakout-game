@@ -2,6 +2,7 @@ CC = gcc
 CXX = g++
 
 LDFLAGS = -L/usr/local/lib -lSDL -lSDLmain -lSDL_ttf -lSDL_image -lSDL_mixer -framework Cocoa -framework OpenGL
+OBJECTS = cp_functions.o main.o mouse.o object.o ball.o brick.o in_game.o game_over.o
 
 all: Breakout
 
@@ -20,6 +21,9 @@ ball.o: ball.cpp
 brick.o: brick.cpp
 	$(CXX) -c brick.cpp
 
+item_brick.o: item_brick.cpp
+	$(CXX) -c item_brick.cpp
+
 in_game.o: in_game.cpp
 	$(CXX) -c in_game.cpp
 
@@ -29,9 +33,9 @@ game_over.o: game_over.cpp
 main.o: main.cpp
 	$(CXX) -c main.cpp
 
-Breakout: main.o cp_functions.o mouse.o object.o ball.o brick.o in_game.o game_over.o
-	$(CXX) -o Breakout main.o cp_functions.o mouse.o object.o ball.o brick.o in_game.o game_over.o $(LDFLAGS)
+Breakout: $(OBJECTS)
+	$(CXX) -o Breakout $(OBJECTS) $(LDFLAGS)
 
 clean: 
-	rm -f *.o Breakout CON
+	rm -f $(OBJECTS) Breakout CON
 

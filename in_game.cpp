@@ -1,6 +1,10 @@
 #include <cmath>
 #include <string>
 #include "headers/global.h"
+#include "headers/object.h"
+#include "headers/ball.h"
+#include "headers/brick.h"
+#include "headers/item_brick.h"
 
 // Global shared resources from main
 extern Font rsu_24_font, rsu_30_font;
@@ -200,6 +204,10 @@ void showInGameScene() {
             // Reset ball position
             ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
             ball.setY(paddle.getY() - ball.getHeight() - 1);
+            // Reset ball velocity in x/y pos
+            bounce_angle = 0;
+            ball.setVelX(ball_vel * sin(bounce_angle));
+            ball.setVelY(-ball_vel * cos(bounce_angle));
         }
 
         // Prevent ball get out of window (In-game Frame side border width = 9px)
