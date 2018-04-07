@@ -10,8 +10,11 @@ class Ball: public Object {
     public:
         Ball(float x, float y, float width, float height, float velX, float velY);
 
+        void move();
         void setVelX(float velX);
         void setVelY(float velY);
+        void invertVelX();
+        void invertVelY();
         void setIsOnScreen(bool isOnScreen);
 
         float getVelX();

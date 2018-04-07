@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 #include "headers/cp_functions.h"
 #include "headers/object.h"
@@ -18,10 +19,12 @@ Texture in_game_bg_texture, in_game_frame_texture;
 
 Event event;
 
+// Global var for In-game Scene
 Object paddle(0, 0, 124, 18);
 Ball ball(0, 0, 20, 20, 0, 0);
 Brick bricks[100];
 int n_bricks;
+bool is_game_start;
 
 bool loadResources() {
     // Font
@@ -87,6 +90,11 @@ void drawInGameTexture() {
 }
 
 void showInGameScreen() {
+    // Set ball speed & start angle (0 degree = go up straight)
+    float ball_vel = 7, bounce_angle = 0;
+    // Set max ball angle when collide w/ paddle = 70 degee angle
+    const float MAX_BOUNCE_ANGLE = 7 * M_PI / 18;
+
     // Hide mouse cursor
     setMouseVisible(false);
 
@@ -103,6 +111,10 @@ void showInGameScreen() {
     // Init ball position
     ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
     ball.setY(paddle.getY() - ball.getHeight() - 1);
+
+    // Init ball velocity in x/y pos
+    ball.setVelX(ball_vel * sin(bounce_angle));
+    ball.setVelY(-ball_vel * cos(bounce_angle));
 
     // Init bricks for level 1
     n_bricks = 96;
@@ -133,6 +145,11 @@ void showInGameScreen() {
             if (event.type == KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
                 return;
             }
+            // Start the game (release ball) when user press left click
+            if (!is_game_start && event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+                is_game_start = true;
+                break;
+            }
         }
 
         // Set paddle position related to mouse position
@@ -143,10 +160,31 @@ void showInGameScreen() {
             paddle.setX(10);
         else if (paddle.getX() + paddle.getWidth() > WINDOW_WIDTH - 10)
             paddle.setX(WINDOW_WIDTH - paddle.getWidth() - 10);
-            cpDelay(10);
 
-        // Set ball position to center of paddle
-        ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
+        if (!is_game_start)
+            // Set ball position to center of paddle
+            ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
+        else
+            // Set ball position related to ball x/y velocity
+            ball.move();
+
+        // Prevent ball get out of window (In-game Frame side border width = 9px)
+        if (ball.getX() < 10) {
+            ball.setX(10);
+            ball.invertVelX();
+        }
+        if (ball.getX() + ball.getWidth() > WINDOW_WIDTH - 10) {
+            ball.setX(WINDOW_WIDTH - ball.getWidth() - 10);
+            ball.invertVelX();
+        }
+        // In-game Frame header height = 63px
+        if (ball.getY() < 64) {
+            cpPlaySound(hit_top_sound);
+            ball.setY(64);
+            ball.invertVelY();
+        }
+
+        cpDelay(10);
     }
 }
 
