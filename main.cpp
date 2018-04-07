@@ -23,6 +23,7 @@ Event event;
 Object paddle(0, 0, 124, 18);
 Ball ball(0, 0, 20, 20, 0, 0);
 Brick bricks[100];
+typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
 int n_bricks;
 bool is_game_start;
 
@@ -73,6 +74,35 @@ int getMouseX() {
     return mouse_x;
 }
 
+/*  Collision Detection between two objects a and b
+    Return collision side of objects a  */
+CollisionSide collide(Object a, Object b) {
+    float w = (a.getWidth() + b.getWidth()) / 2;
+    float h = (a.getHeight() + b.getHeight()) / 2;
+    float dx = (a.getX() + a.getWidth() / 2) - (b.getX() + b.getWidth() / 2);
+    float dy = (a.getY() + a.getHeight() / 2) - (b.getY() + b.getHeight() / 2);
+
+    // Collision detect
+    if (fabs(dx) <= w && fabs(dy) <= h) {
+        float wy = w * dy;
+        float hx = h * dx;
+
+        if (wy > hx) {
+            if (wy > -hx)
+                return CollideTop;
+            else
+                return CollideRight;
+        } else {
+            if (wy > -hx)
+                return CollideLeft;
+            else
+                return CollideBottom;
+        }
+    }
+    // No collision detect
+    return NoCollide;
+}
+
 void drawInGameTexture() {
     // In-game Background
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_bg_texture);
@@ -94,6 +124,10 @@ void showInGameScreen() {
     float ball_vel = 7, bounce_angle = 0;
     // Set max ball angle when collide w/ paddle = 70 degee angle
     const float MAX_BOUNCE_ANGLE = 7 * M_PI / 18;
+    // Temp vars for calculate angle
+    float relative_intersect, normalized_relative_intersect;
+    // Store collide side
+    int side;
 
     // Hide mouse cursor
     setMouseVisible(false);
@@ -102,7 +136,7 @@ void showInGameScreen() {
     paddle.setX(getMouseX() - paddle.getWidth() / 2);
     paddle.setY(WINDOW_HEIGHT - 80);
 
-    // Prevent paddle get out of window (In-game Frame side border width = 10px)
+    // Prevent paddle get out of window (In-game Frame side border width = 9px)
     if (paddle.getX() < 10)
         paddle.setX(10);
     else if (paddle.getX() + paddle.getWidth() > WINDOW_WIDTH - 10)
@@ -182,6 +216,32 @@ void showInGameScreen() {
             cpPlaySound(hit_top_sound);
             ball.setY(64);
             ball.invertVelY();
+        }
+
+        // When ball collide w/ paddle
+        if ((side = collide(paddle, ball))) {
+            cpPlaySound(hit_paddle_sound);
+
+            // Set new ball angle related to collide position on paddle
+            relative_intersect = (ball.getX() + ball.getWidth() / 2) - (paddle.getX() + paddle.getWidth() / 2);
+            normalized_relative_intersect = relative_intersect / (paddle.getWidth() / 2);
+            bounce_angle = normalized_relative_intersect * MAX_BOUNCE_ANGLE;
+
+            ball.setVelX(ball_vel * sin(bounce_angle));
+            ball.setVelY(-ball_vel * cos(bounce_angle));
+
+            // Prevent ball get into paddle
+            if (side == CollideTop) {
+                ball.setY(paddle.getY() - ball.getHeight() - 1);
+            } else if (side == CollideLeft) {
+                ball.setX(paddle.getX() - ball.getWidth() - 1);
+                // Set ball to go only left side
+                ball.setVelX(-fabs(ball.getVelX()));
+            } else if (side == CollideRight) {
+                ball.setX(paddle.getX() + paddle.getWidth() + 1);
+                // Set ball to go only right side
+                ball.setVelX(fabs(ball.getVelX()));
+            }
         }
 
         cpDelay(10);
