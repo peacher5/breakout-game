@@ -7,6 +7,7 @@ class Object {
     protected:
         float x_, y_, width_, height_;
     public:
+        Object(float width, float height);
         Object(float x, float y, float width, float height);
 
         void setX(float x);

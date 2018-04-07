@@ -8,8 +8,8 @@ extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
 extern Texture paddle_texture, ball_texture, brick_texture, in_game_bg_texture, in_game_frame_texture;
 
 // Global vars for In-game Scene
-Object paddle(0, 0, 124, 18);
-Ball ball(0, 0, 20, 20, 0, 0);
+Object paddle(124, 18);
+Ball ball(20, 20);
 Brick bricks[100];
 typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
 int n_bricks, score;

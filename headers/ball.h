@@ -8,6 +8,8 @@ class Ball: public Object {
         float velX_, velY_;
         bool isOnScreen_;
     public:
+        Ball();
+        Ball(float width, float height);
         Ball(float x, float y, float width, float height, float velX, float velY);
 
         void move();

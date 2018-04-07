@@ -1,5 +1,11 @@
 #include "headers/ball.h"
 
+Ball::Ball() :
+    Object(0, 0, 0, 0), velX_(0), velY_(0), isOnScreen_(true) {}
+
+Ball::Ball(float width, float height) :
+    Object(0, 0, width, height), velX_(0), velY_(0), isOnScreen_(true) {}
+
 Ball::Ball(float x, float y, float width, float height, float velX, float velY) :
     Object(x, y, width, height), velX_(velX), velY_(velY), isOnScreen_(true) {}
 
