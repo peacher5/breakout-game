@@ -24,7 +24,7 @@ typedef Mix_Music *Music;
 typedef Mix_Chunk *Sound;
 typedef SDL_Event Event;
 
-typedef struct
+typedef struct texture
 {
     unsigned int tex_id;
     int width, height;

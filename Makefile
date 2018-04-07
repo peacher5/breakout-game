@@ -8,6 +8,9 @@ all: Breakout
 cp_functions.o: cp_functions.c
 	$(CC) -c cp_functions.c
 
+mouse.o: mouse.cpp
+	$(CXX) -c mouse.cpp
+
 object.o: object.cpp
 	$(CXX) -c object.cpp
 
@@ -17,11 +20,14 @@ ball.o: ball.cpp
 brick.o: brick.cpp
 	$(CXX) -c brick.cpp
 
+in_game.o: in_game.cpp
+	$(CXX) -c in_game.cpp
+
 main.o: main.cpp
 	$(CXX) -c main.cpp
 
-Breakout: cp_functions.o main.o object.o ball.o brick.o
-	$(CXX) -o Breakout main.o cp_functions.o object.o ball.o brick.o $(LDFLAGS)
+Breakout: main.o cp_functions.o mouse.o object.o ball.o brick.o in_game.o
+	$(CXX) -o Breakout main.o cp_functions.o mouse.o object.o ball.o brick.o in_game.o $(LDFLAGS)
 
 clean: 
 	rm -f *.o Breakout CON
