@@ -18,6 +18,11 @@ Texture in_game_bg_texture, in_game_frame_texture;
 
 Event event;
 
+Object paddle(0, 0, 124, 18);
+Ball ball(0, 0, 20, 20, 0, 0);
+Brick bricks[100];
+int n_bricks;
+
 bool loadResources() {
     // Font
     rsu_24_font = cpLoadFont("fonts/RSU_BOLD.ttf", 24);
@@ -43,10 +48,27 @@ bool loadResources() {
    return true;
 }
 
-Object paddle(0, 0, 124, 18);
-Ball ball(0, 0, 20, 20, 0, 0);
-Brick bricks[100];
-int n_bricks;
+void setMouseVisible(bool toggle) {
+    // Show/hide cursor in the window.
+    SDL_ShowCursor(toggle);
+    // Confined cursor to the window.
+    if (toggle)
+        SDL_WM_GrabInput(SDL_GRAB_OFF);
+    else
+        SDL_WM_GrabInput(SDL_GRAB_ON);
+}
+
+void setMouseX(int mouse_x) {
+    // Set mouse x position (y position is not used when hiding cursor)
+    SDL_WarpMouse(mouse_x, 0);
+}
+
+int getMouseX() {
+    int mouse_x;
+    // Get only mouse x position
+    SDL_GetMouseState(&mouse_x, NULL);
+    return mouse_x;
+}
 
 void drawInGameTexture() {
     // In-game Background
@@ -65,12 +87,21 @@ void drawInGameTexture() {
 }
 
 void showInGameScreen() {
-    // Init paddle
-    paddle.setX(WINDOW_WIDTH / 2 - paddle.getWidth() / 2);
+    // Hide mouse cursor
+    setMouseVisible(false);
+
+    // Init paddle position
+    paddle.setX(getMouseX() - paddle.getWidth() / 2);
     paddle.setY(WINDOW_HEIGHT - 80);
 
-    // Init ball
-    ball.setX(WINDOW_WIDTH / 2 - ball.getWidth() / 2);
+    // Prevent paddle get out of window (In-game Frame side border width = 10px)
+    if (paddle.getX() < 10)
+        paddle.setX(10);
+    else if (paddle.getX() + paddle.getWidth() > WINDOW_WIDTH - 10)
+        paddle.setX(WINDOW_WIDTH - paddle.getWidth() - 10);
+
+    // Init ball position
+    ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
     ball.setY(paddle.getY() - ball.getHeight() - 1);
 
     // Init bricks for level 1
@@ -89,15 +120,33 @@ void showInGameScreen() {
     while (true) {
         cpClearScreen();
         drawInGameTexture();
+
         // Update Screen
         cpSwapBuffers();
+
         // Handle events
         while (cbPollEvent(&event)) {
             if (event.type == QUIT) {
                 return;
             }
+            // User released ESC key
+            if (event.type == KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
+                return;
+            }
         }
-        cpDelay(10);
+
+        // Set paddle position related to mouse position
+        paddle.setX(getMouseX() - paddle.getWidth() / 2);
+
+        // Prevent paddle get out of window (In-game Frame side border width = 10px)
+        if (paddle.getX() < 10)
+            paddle.setX(10);
+        else if (paddle.getX() + paddle.getWidth() > WINDOW_WIDTH - 10)
+            paddle.setX(WINDOW_WIDTH - paddle.getWidth() - 10);
+            cpDelay(10);
+
+        // Set ball position to center of paddle
+        ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
     }
 }
 
