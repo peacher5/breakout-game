@@ -1,13 +1,14 @@
 #include <iostream>
 #include "headers/global.h"
 #include "headers/in_game.h"
-
-using namespace std;
+#include "headers/game_over.h"
 
 // Global shared resources
 Font rsu_24_font, rsu_30_font;
 Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
 Texture paddle_texture, ball_texture, brick_texture, in_game_bg_texture, in_game_frame_texture;
+GameScene next_scene;
+bool quit;
 
 bool loadResources() {
     // Font
@@ -28,8 +29,8 @@ bool loadResources() {
     in_game_bg_texture = cpLoadTexture("textures/in_game_bg.png");
     in_game_frame_texture = cpLoadTexture("textures/in_game_frame.png");
 
-   if (!rsu_24_font || !rsu_30_font || !hit_paddle_sound || !hit_brick_sound || !hit_top_sound || !end_sound ||
-       !paddle_texture || !ball_texture || !brick_texture || !in_game_bg_texture ||
+   if (!rsu_24_font || !rsu_30_font || !hit_paddle_sound || !hit_brick_sound || !hit_top_sound ||
+       !end_sound || !paddle_texture || !ball_texture || !brick_texture || !in_game_bg_texture ||
        !in_game_frame_texture)
         return false;
    return true;
@@ -49,7 +50,23 @@ int main(int argc, char *args[]) {
         exit(1);
     }
 
-    showInGameScreen();
+    // TODO: Create MainMenu scene then remove this line
+    next_scene = InGame;
+
+    while (!quit) {
+        switch (next_scene) {
+            case MainMenu:
+                break;
+            case InGame:
+                showInGameScene();
+                break;
+            case GameOver:
+                showGameOverScene();
+                break;
+            case HighScore:
+                break;
+        }
+    }
 
     cpCleanUp();
     return 0;

@@ -23,11 +23,14 @@ brick.o: brick.cpp
 in_game.o: in_game.cpp
 	$(CXX) -c in_game.cpp
 
+game_over.o: game_over.cpp
+	$(CXX) -c game_over.cpp
+
 main.o: main.cpp
 	$(CXX) -c main.cpp
 
-Breakout: main.o cp_functions.o mouse.o object.o ball.o brick.o in_game.o
-	$(CXX) -o Breakout main.o cp_functions.o mouse.o object.o ball.o brick.o in_game.o $(LDFLAGS)
+Breakout: main.o cp_functions.o mouse.o object.o ball.o brick.o in_game.o game_over.o
+	$(CXX) -o Breakout main.o cp_functions.o mouse.o object.o ball.o brick.o in_game.o game_over.o $(LDFLAGS)
 
 clean: 
 	rm -f *.o Breakout CON

@@ -1,18 +1,21 @@
 #include <cmath>
+#include <string>
 #include "headers/global.h"
-#include <iostream>
 
 // Global shared resources from main
 extern Font rsu_24_font, rsu_30_font;
 extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
 extern Texture paddle_texture, ball_texture, brick_texture, in_game_bg_texture, in_game_frame_texture;
+extern GameScene next_scene;
+extern bool quit;
 
 // Global vars for In-game Scene
 Object paddle(124, 18);
 Ball ball(20, 20);
 Brick bricks[100];
+
 typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
-int n_bricks, score;
+int n_bricks, score, balls_left;
 bool is_game_start;
 
 /*  Collision Detection between two objects a and b
@@ -45,10 +48,8 @@ CollisionSide collide(Object a, Object b) {
 }
 
 void drawScoreText(int score) {
-    char scoreDigit[2];
     for (int i = 0, x = 150; i < 5; i++, x -= 27) {
-        sprintf(scoreDigit, "%d", score % 10);
-        cpDrawText(255, 255, 255, 216, x, 43, scoreDigit, rsu_30_font, true);
+        cpDrawText(255, 255, 255, 216, x, 43, to_string(score % 10).c_str(), rsu_30_font, true);
         score /= 10;
     }
 }
@@ -68,11 +69,13 @@ void drawInGameTexture() {
     }
     // In-game Frame
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
-    // Score
+    // Score text
     drawScoreText(score);
+    // Balls left text
+    cpDrawText(255, 255, 255, 216, 758, 43, to_string(balls_left).c_str(), rsu_30_font, true);
 }
 
-void showInGameScreen() {
+void showInGameScene() {
     // For store event from PollEvent function
     Event event;
     // Set ball speed & start angle (0 degree = go up straight)
@@ -81,7 +84,7 @@ void showInGameScreen() {
     const float MAX_BOUNCE_ANGLE = 7 * M_PI / 18;
     // Temp vars for calculate angle
     float relative_intersect, normalized_relative_intersect;
-    // Store collide side
+    // Store collision side
     int side;
 
     // Hide mouse cursor
@@ -105,6 +108,15 @@ void showInGameScreen() {
     ball.setVelX(ball_vel * sin(bounce_angle));
     ball.setVelY(-ball_vel * cos(bounce_angle));
 
+    // Init number of balls left
+    balls_left = 2;
+
+    // Init start score
+    score = 0;
+
+    // Init game status (ball will stick w/ paddle)
+    is_game_start = false;
+
     // Init bricks for level 1
     n_bricks = 96;
     for (int i = 0, x = 100, y = 120; i < n_bricks; i++) {
@@ -112,6 +124,7 @@ void showInGameScreen() {
             bricks[i].setY(y);
             bricks[i].setWidth(50);
             bricks[i].setHeight(25);
+            bricks[i].setDurability(1);
         if (x > WINDOW_WIDTH - 200)
             x = 100, y += 25;
         else
@@ -128,10 +141,12 @@ void showInGameScreen() {
         // Handle events
         while (cbPollEvent(&event)) {
             if (event.type == QUIT) {
+                quit = true;
                 return;
             }
             // User released ESC key
             if (event.type == KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
+                quit = true;
                 return;
             }
             // Start the game (release ball) when user press left click
@@ -156,6 +171,22 @@ void showInGameScreen() {
         else
             // Set ball position related to ball x/y velocity
             ball.move();
+
+        // When Ball fall down
+        if (ball.getY() > WINDOW_HEIGHT) {
+            // Stop the game (make ball stick w/ paddle)
+            is_game_start = false;
+            // No balls left to play
+            if (!balls_left) {
+                next_scene = GameOver;
+                return;
+            }
+            // Decrease number of balls left by 1
+            balls_left--;
+            // Reset ball position
+            ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
+            ball.setY(paddle.getY() - ball.getHeight() - 1);
+        }
 
         // Prevent ball get out of window (In-game Frame side border width = 9px)
         if (ball.getX() < 10) {

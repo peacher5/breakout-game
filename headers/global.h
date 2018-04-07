@@ -11,4 +11,8 @@
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 700
 
+using namespace std;
+
+typedef enum {MainMenu, InGame, GameOver, HighScore} GameScene;
+
 #endif // GLOBAL_H
