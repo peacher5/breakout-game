@@ -111,7 +111,7 @@ void showInGameScene() {
     // Temp vars for calculate angle
     float relative_intersect, normalized_relative_intersect;
     // Store collision side
-    int side;
+    CollisionSide side;
 
     // Hide mouse cursor
     setMouseVisible(false);
@@ -259,6 +259,10 @@ void showInGameScene() {
                         ball.setX(bricks[i].getX() + bricks[i].getWidth() + 1);
                         // Set ball to go only right side
                         ball.setVelX(fabs(ball.getVelX()));
+                        break;
+                    // suppress compiler warning
+                    default:
+                        break;
                 }
             }
         }
@@ -289,6 +293,10 @@ void showInGameScene() {
                     ball.setX(paddle.getX() + paddle.getWidth() + 1);
                     // Set ball to go only right side
                     ball.setVelX(fabs(ball.getVelX()));
+                    break;
+                // suppress compiler warning
+                default:
+                    break;
             }
         }
 
