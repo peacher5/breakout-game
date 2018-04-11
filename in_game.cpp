@@ -9,7 +9,8 @@
 // Global shared resources from main
 extern Font rsu_24_font, rsu_30_font;
 extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
-extern Texture paddle_texture, ball_texture, brick_texture, in_game_bg_texture, in_game_frame_texture;
+extern Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
+extern Texture blue_brick_texture, yellow_brick_texture;
 extern GameScene next_scene;
 extern bool quit;
 
@@ -91,7 +92,7 @@ void drawInGameTexture() {
     for (int i = 0; i < n_bricks; i++) {
         // if durability != 0 then draw a brick
         if (bricks[i].getDurability())
-            bricks[i].drawTexture(brick_texture);
+            bricks[i].drawTexture(blue_brick_texture);
     }
     // In-game Frame
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
@@ -105,7 +106,7 @@ void showInGameScene() {
     // For store event from PollEvent function
     Event event;
     // Set ball speed & start angle (0 degree = go up straight)
-    float ball_vel = 9, bounce_angle = 0;
+    float ball_vel = 10, bounce_angle = 0;
     // Set max ball angle when collide w/ paddle = 70 degee angle
     const float MAX_BOUNCE_ANGLE = 7 * M_PI / 18;
     // Temp vars for calculate angle
