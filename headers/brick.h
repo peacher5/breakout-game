@@ -5,14 +5,17 @@
 
 class Brick: public Object {
     protected:
-        int durability_;
+        int durability_, score_;
+        Texture crack_texture_;
     public:
         Brick();
-        Brick(float x, float y, float width, float height, int durability);
 
+        void setScore(int score);
         void setDurability(int durability);
         void decreaseDurability();
+        void setCrackTexture(Texture crack_texture);
 
+        int getScore();
         int getDurability();
 };
 

@@ -10,7 +10,7 @@
 extern Font rsu_24_font, rsu_30_font;
 extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
 extern Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
-extern Texture blue_brick_texture, yellow_brick_texture;
+extern Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture;
 extern GameScene next_scene;
 extern bool quit;
 
@@ -60,7 +60,15 @@ void initBricksLevel(int level) {
                 bricks[i].setY(y);
                 bricks[i].setWidth(50);
                 bricks[i].setHeight(25);
-                bricks[i].setDurability(1);
+                if (i % 5) {
+                    bricks[i].setTexture(blue_brick_texture);
+                    bricks[i].setScore(5);
+                } else {
+                    bricks[i].setTexture(stone_brick_texture);
+                    bricks[i].setCrackTexture(crack_stone_brick_texture);
+                    bricks[i].setDurability(2);
+                    bricks[i].setScore(20);
+                }
             if (x > WINDOW_WIDTH - 200)
                 x = 100, y += 25;
             else
@@ -85,14 +93,14 @@ void drawInGameTexture() {
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_bg_texture);
     // Paddle
     if (next_scene == InGame)
-        paddle.drawTexture(paddle_texture);
+        paddle.drawTexture();
     // Ball
-    ball.drawTexture(ball_texture);
+    ball.drawTexture();
     // Bricks
     for (int i = 0; i < n_bricks; i++) {
-        // if durability != 0 then draw a brick
+        // if brick have durability then draw a brick
         if (bricks[i].getDurability())
-            bricks[i].drawTexture(blue_brick_texture);
+            bricks[i].drawTexture();
     }
     // In-game Frame
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
@@ -137,6 +145,10 @@ void showInGameScene() {
     // Init ball velocity in x/y pos
     ball.setVelX(ball_vel * sin(bounce_angle));
     ball.setVelY(-ball_vel * cos(bounce_angle));
+
+    // Set ball/paddle texture
+    ball.setTexture(ball_texture);
+    paddle.setTexture(paddle_texture);
 
     // Init number of balls left
     balls_left = 2;
@@ -236,8 +248,9 @@ void showInGameScene() {
                 // Decrease durability by 1
                 bricks[i].decreaseDurability();
 
-                // + Score
-                score += 5;
+                // + Score when brick is break
+                if (!bricks[i].getDurability())
+                    score += bricks[i].getScore();
 
                 // Prevent ball get into brick
                 switch (side) {

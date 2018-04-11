@@ -8,7 +8,7 @@ Font rsu_20_font, rsu_24_font, rsu_30_font;
 Music background_music;
 Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
 Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
-Texture blue_brick_texture, yellow_brick_texture;
+Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture;
 Texture game_over_overlay_texture;
 GameScene next_scene;
 bool quit;
@@ -30,7 +30,8 @@ bool loadResources() {
     paddle_texture = cpLoadTexture("textures/paddle.png");
     ball_texture = cpLoadTexture("textures/ball.png");
     blue_brick_texture = cpLoadTexture("textures/blue_brick.png");
-    yellow_brick_texture = cpLoadTexture("textures/blue_brick.png");
+    stone_brick_texture = cpLoadTexture("textures/stone_brick.png");
+    crack_stone_brick_texture = cpLoadTexture("textures/crack_stone_brick.png");
 
     in_game_bg_texture = cpLoadTexture("textures/in_game_bg.png");
     in_game_frame_texture = cpLoadTexture("textures/in_game_frame.png");
@@ -39,7 +40,7 @@ bool loadResources() {
 
    if (!rsu_24_font || !rsu_30_font || !background_music || !hit_paddle_sound || !hit_brick_sound ||
        !hit_top_sound || !end_sound || !paddle_texture || !ball_texture || !blue_brick_texture ||
-       !yellow_brick_texture || !in_game_bg_texture || !in_game_frame_texture)
+       !stone_brick_texture || !crack_stone_brick_texture || !in_game_bg_texture || !in_game_frame_texture)
         return false;
    return true;
 }

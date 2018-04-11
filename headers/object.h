@@ -6,6 +6,7 @@
 class Object {
     protected:
         float x_, y_, width_, height_;
+        Texture texture_;
     public:
         Object(float width, float height);
         Object(float x, float y, float width, float height);
@@ -14,12 +15,13 @@ class Object {
         void setY(float y);
         void setWidth(float width);
         void setHeight(float height);
+        void setTexture(Texture texture);
 
         float getX();
         float getY();
         float getWidth();
         float getHeight();
-        void drawTexture(Texture texture);
+        void drawTexture();
 };
 
 #endif // OBJECT_H

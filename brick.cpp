@@ -1,20 +1,31 @@
+#include <iostream>
 #include "headers/brick.h"
 
-Brick::Brick() : Object(0, 0, 0, 0), durability_(1) {}
+Brick::Brick() : Object(0, 0, 0, 0), durability_(1), score_(0), crack_texture_(NULL) {}
 
-Brick::Brick(float x, float y, float width, float height, int durability) :
-    Object(x, y, width, height), durability_(durability) {
-    if (durability < 1)
-        durability = 1;
+void Brick::setScore(int score) {
+    score_ = score;
 }
 
 void Brick::setDurability(int durability) {
-    durability_ = durability;
+    if (durability > 0)
+        durability_ = durability;
 }
 
 void Brick::decreaseDurability() {
-    if (durability_)
+    if (durability_) {
         durability_--;
+        if (durability_ == 1 && crack_texture_)
+            texture_ = crack_texture_;
+    }
+}
+
+void Brick::setCrackTexture(Texture crack_texture) {
+    crack_texture_ = crack_texture;
+}
+
+int Brick::getScore() {
+    return score_;
 }
 
 int Brick::getDurability() {

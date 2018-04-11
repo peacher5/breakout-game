@@ -22,6 +22,10 @@ void Object::setHeight(float height) {
     height_ = height;
 }
 
+void Object::setTexture(Texture texture) {
+    texture_ = texture;
+}
+
 float Object::getX() {
     return x_;
 }
@@ -38,6 +42,6 @@ float Object::getHeight() {
     return height_;
 }
 
-void Object::drawTexture(Texture texture) {
-    cpDrawTexture(Object::getX(), Object::getY(), Object::getWidth(), Object::getHeight(), texture);
+void Object::drawTexture() {
+    cpDrawTexture(Object::getX(), Object::getY(), Object::getWidth(), Object::getHeight(), texture_);
 }
