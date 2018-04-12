@@ -5,7 +5,7 @@
 
 extern Font rsu_20_font, rsu_24_font;
 extern Texture game_over_overlay_texture;
-extern GameScene next_scene;
+extern GameScene scene;
 extern bool quit;
 
 extern int score;
@@ -56,7 +56,7 @@ void showGameOverScene() {
             }
             // When user press left click (TEST)
             if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-                next_scene = InGame;
+                scene = InGame;
                 return;
             }
         }

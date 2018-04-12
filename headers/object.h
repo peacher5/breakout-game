@@ -15,6 +15,7 @@ class Object {
         void setY(float y);
         void setWidth(float width);
         void setHeight(float height);
+        void setSize(float width, float height);
         void setTexture(Texture texture);
 
         float getX();

@@ -6,11 +6,11 @@
 // Global shared resources
 Font rsu_20_font, rsu_24_font, rsu_30_font;
 Music background_music;
-Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
+Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound, missile_sound;
 Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
 Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture;
-Texture game_over_overlay_texture;
-GameScene next_scene;
+Texture game_over_overlay_texture, missile_texture;
+GameScene scene;
 bool quit;
 
 bool loadResources() {
@@ -25,6 +25,7 @@ bool loadResources() {
     hit_brick_sound = cpLoadSound("sounds/hitUp.wav");
     hit_top_sound = cpLoadSound("sounds/hitTop.wav");
     end_sound = cpLoadSound("sounds/theEnd.wav");
+    missile_sound = cpLoadSound("sounds/missile.wav");
 
     // Texture
     paddle_texture = cpLoadTexture("textures/paddle.png");
@@ -32,6 +33,7 @@ bool loadResources() {
     blue_brick_texture = cpLoadTexture("textures/blue_brick.png");
     stone_brick_texture = cpLoadTexture("textures/stone_brick.png");
     crack_stone_brick_texture = cpLoadTexture("textures/crack_stone_brick.png");
+    missile_texture = cpLoadTexture("textures/missile.png");
 
     in_game_bg_texture = cpLoadTexture("textures/in_game_bg.png");
     in_game_frame_texture = cpLoadTexture("textures/in_game_frame.png");
@@ -39,8 +41,9 @@ bool loadResources() {
     game_over_overlay_texture = cpLoadTexture("textures/game_over_overlay.png");
 
    if (!rsu_24_font || !rsu_30_font || !background_music || !hit_paddle_sound || !hit_brick_sound ||
-       !hit_top_sound || !end_sound || !paddle_texture || !ball_texture || !blue_brick_texture ||
-       !stone_brick_texture || !crack_stone_brick_texture || !in_game_bg_texture || !in_game_frame_texture)
+       !hit_top_sound || !end_sound || !missile_sound || !paddle_texture || !ball_texture ||
+       !blue_brick_texture || !stone_brick_texture || !crack_stone_brick_texture || !in_game_bg_texture ||
+       !in_game_frame_texture)
         return false;
    return true;
 }
@@ -60,13 +63,13 @@ int main(int argc, char *args[]) {
     }
 
     // TODO: Create MainMenu scene then remove this line
-    next_scene = InGame;
+    scene = InGame;
 
     // Loop play background music
     cpPlayMusic(background_music);
 
     while (!quit) {
-        switch (next_scene) {
+        switch (scene) {
             case MainMenu:
                 break;
             case InGame:

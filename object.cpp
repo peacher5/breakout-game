@@ -18,6 +18,11 @@ void Object::setWidth(float width) {
     width_ = width;
 }
 
+void Object::setSize(float width, float height) {
+    width_ = width;
+    height_ = height;
+}
+
 void Object::setHeight(float height) {
     height_ = height;
 }

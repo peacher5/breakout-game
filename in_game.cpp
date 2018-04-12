@@ -5,19 +5,21 @@
 #include "headers/ball.h"
 #include "headers/brick.h"
 #include "headers/item_brick.h"
+#include "headers/missile.h"
 
 // Global shared resources from main
 extern Font rsu_24_font, rsu_30_font;
-extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound;
+extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound, missile_sound;
 extern Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
-extern Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture;
-extern GameScene next_scene;
+extern Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture, missile_texture;
+extern GameScene scene;
 extern bool quit;
 
 // Global vars for In-game Scene
 Object paddle(124, 18);
 Ball ball(20, 20);
 Brick bricks[100];
+Missile missiles[30];
 
 typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
 int n_bricks, score, balls_left;
@@ -58,8 +60,7 @@ void initBricksLevel(int level) {
         for (int i = 0, x = 100, y = 120; i < n_bricks; i++) {
                 bricks[i].setX(x);
                 bricks[i].setY(y);
-                bricks[i].setWidth(50);
-                bricks[i].setHeight(25);
+                bricks[i].setSize(50, 25);
                 if (i % 5) {
                     bricks[i].setTexture(blue_brick_texture);
                     bricks[i].setScore(5);
@@ -91,8 +92,13 @@ void drawScoreText(int score) {
 void drawInGameTexture() {
     // In-game Background
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_bg_texture);
+    // Missile
+    for (int i = 0; i < 30; i++) {
+        if (missiles[i].isVisible())
+            missiles[i].drawTexture();
+    }
     // Paddle
-    if (next_scene == InGame)
+    if (scene == InGame)
         paddle.drawTexture();
     // Ball
     ball.drawTexture();
@@ -114,11 +120,15 @@ void showInGameScene() {
     // For store event from PollEvent function
     Event event;
     // Set ball speed & start angle (0 degree = go up straight)
-    float ball_vel = 10, bounce_angle = 0;
+    float ball_vel = 9, bounce_angle = 0;
     // Set max ball angle when collide w/ paddle = 70 degee angle
     const float MAX_BOUNCE_ANGLE = 7 * M_PI / 18;
     // Temp vars for calculate angle
     float relative_intersect, normalized_relative_intersect;
+    // For mouse hold detect
+    bool is_mouse_down = false;
+    // Missile fire delay
+    int missile_tick = 0;
     // Store collision side
     CollisionSide side;
 
@@ -149,6 +159,11 @@ void showInGameScene() {
     // Set ball/paddle texture
     ball.setTexture(ball_texture);
     paddle.setTexture(paddle_texture);
+
+    // Reset Missiles
+    for (int i = 0; i < 30; i++) {
+        missiles[i].setVisible(false);
+    }
 
     // Init number of balls left
     balls_left = 2;
@@ -185,6 +200,66 @@ void showInGameScene() {
                 is_game_start = true;
                 break;
             }
+            // Left click mouse hold down detect
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                if (is_game_start && event.type == SDL_MOUSEBUTTONDOWN)
+                    is_mouse_down = true;
+                else if (event.type == SDL_MOUSEBUTTONUP)
+                    is_mouse_down = false, missile_tick = 10;
+            }
+        }
+
+        if (is_game_start && is_mouse_down) {
+            if (missile_tick == 10) {
+                missile_tick = 0;
+                for (int i = 0, amount = 0; i < 30; i++) {
+                    // Launch 2 new missiles
+                    if (!missiles[i].isVisible()) {
+                        missiles[i].setSize(8, 18);
+                        if (amount == 0)
+                            // Left side of paddle
+                            missiles[i].setX(paddle.getX() + 3);
+                        else
+                            // Right side of paddle
+                            missiles[i].setX(paddle.getX() + paddle.getWidth() - (missiles[i].getWidth() + 3));
+                        missiles[i].setY(paddle.getY());
+                        missiles[i].setTexture(missile_texture);
+                        missiles[i].setVisible(true);
+                        // Play missile launch sound
+                        cpPlaySound(missile_sound);
+                        amount++;
+                        // Fire 2 missiles per 1 time
+                        if (amount == 2)
+                            break;
+                    }
+                }
+            } else
+                missile_tick++;
+        }
+
+        for (int i = 0; i < 30; i++) {
+            if (missiles[i].isVisible()) {
+                // Missile Speed = 7
+                missiles[i].setY(missiles[i].getY() - 7);
+                // Reset Missile when get out of window
+                if (missiles[i].getY() + missiles[i].getHeight() < 64)
+                    missiles[i].setVisible(false);
+                else {
+                    // When missile hit a brick
+                    for (int j = 0; j < n_bricks; j++) {
+                        if (bricks[j].getDurability() && collide(missiles[i], bricks[j])) {
+                            missiles[i].setVisible(false);
+                            // Play hit sound
+                            cpPlaySound(hit_brick_sound);
+                            // Decrease brick durability by 1
+                            bricks[j].decreaseDurability();
+                            // + Score when brick is break
+                            if (!bricks[j].getDurability())
+                                score += bricks[j].getScore();
+                        }
+                    }
+                }
+            }
         }
 
         // Set paddle position related to mouse position
@@ -209,7 +284,7 @@ void showInGameScene() {
             is_game_start = false;
             // No balls left to play
             if (!balls_left) {
-                next_scene = GameOver;
+                scene = GameOver;
                 return;
             }
             // Decrease number of balls left by 1
@@ -242,7 +317,7 @@ void showInGameScene() {
         for (int i = 0; i < n_bricks; i++) {
             // When ball hit a brick
             if (bricks[i].getDurability() && (side = collide(bricks[i], ball))) {
-                // Play sound
+                // Play hit sound
                 cpPlaySound(hit_brick_sound);
 
                 // Decrease durability by 1
