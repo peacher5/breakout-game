@@ -8,10 +8,11 @@
 #include "headers/missile.h"
 
 // Global shared resources from main
-extern Font rsu_24_font, rsu_30_font;
+extern Font rsu_24_font, rsu_26_font, rsu_30_font;
 extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound, missile_sound;
 extern Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
 extern Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture, missile_texture;
+extern Texture missiles_left_icon_texture;
 extern GameScene scene;
 extern bool quit;
 
@@ -22,7 +23,7 @@ Brick bricks[100];
 Missile missiles[30];
 
 typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
-int n_bricks, score, balls_left;
+int n_bricks, score, balls_left, missiles_left;
 bool is_game_start;
 
 /*  Collision Detection between two objects a and b
@@ -63,6 +64,7 @@ void initBricksLevel(int level) {
                 bricks[i].setSize(50, 25);
                 if (i % 5) {
                     bricks[i].setTexture(blue_brick_texture);
+                    bricks[i].setDurability(1);
                     bricks[i].setScore(5);
                 } else {
                     bricks[i].setTexture(stone_brick_texture);
@@ -92,26 +94,37 @@ void drawScoreText(int score) {
 void drawInGameTexture() {
     // In-game Background
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_bg_texture);
+
     // Missile
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 30; i++)
         if (missiles[i].isVisible())
             missiles[i].drawTexture();
-    }
+
+    // Missile left icon
+    cpDrawTexture(28, 656, missiles_left_icon_texture->width, missiles_left_icon_texture->height,
+        missiles_left_icon_texture);
+
+    // Missile left text
+    cpDrawText(255, 255, 255, 230, 76, 651, to_string(missiles_left).c_str(), rsu_26_font, false);
+
     // Paddle
     if (scene == InGame)
         paddle.drawTexture();
+
     // Ball
     ball.drawTexture();
-    // Bricks
-    for (int i = 0; i < n_bricks; i++) {
-        // if brick have durability then draw a brick
+
+    // Bricks (if brick still have durability then draw a brick)
+    for (int i = 0; i < n_bricks; i++)
         if (bricks[i].getDurability())
             bricks[i].drawTexture();
-    }
+
     // In-game Frame
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
+
     // Score text
     drawScoreText(score);
+
     // Balls left text
     cpDrawText(255, 255, 255, 216, 758, 43, to_string(balls_left).c_str(), rsu_30_font, true);
 }
@@ -165,6 +178,9 @@ void showInGameScene() {
         missiles[i].setVisible(false);
     }
 
+    // Init number of missiles left
+    missiles_left = 10;
+
     // Init number of balls left
     balls_left = 2;
 
@@ -209,7 +225,7 @@ void showInGameScene() {
             }
         }
 
-        if (is_game_start && is_mouse_down) {
+        if (is_game_start && is_mouse_down && missiles_left) {
             if (missile_tick == 10) {
                 missile_tick = 0;
                 for (int i = 0, amount = 0; i < 30; i++) {
@@ -229,8 +245,10 @@ void showInGameScene() {
                         cpPlaySound(missile_sound);
                         amount++;
                         // Fire 2 missiles per 1 time
-                        if (amount == 2)
+                        if (amount == 2) {
+                            missiles_left--;
                             break;
+                        }
                     }
                 }
             } else
