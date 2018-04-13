@@ -9,7 +9,8 @@ Music background_music;
 Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound, missile_sound;
 Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
 Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture;
-Texture game_over_overlay_texture, missile_texture, missiles_left_icon_texture;
+Texture game_over_overlay_texture, all_lv_clear_overlay_texture;
+Texture missile_texture, missiles_left_icon_texture;
 GameScene scene;
 bool quit;
 
@@ -41,6 +42,7 @@ bool loadResources() {
     in_game_frame_texture = cpLoadTexture("textures/in_game_frame.png");
 
     game_over_overlay_texture = cpLoadTexture("textures/game_over_overlay.png");
+    all_lv_clear_overlay_texture = cpLoadTexture("textures/all_lv_clear_overlay.png");
 
    if (!rsu_24_font || !rsu_30_font || !background_music || !hit_paddle_sound || !hit_brick_sound ||
        !hit_top_sound || !end_sound || !missile_sound || !paddle_texture || !ball_texture ||

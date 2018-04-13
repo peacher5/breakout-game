@@ -4,11 +4,12 @@
 #include "headers/scoreboard.h"
 
 extern Font rsu_20_font, rsu_24_font;
-extern Texture game_over_overlay_texture;
+extern Texture game_over_overlay_texture, all_lv_clear_overlay_texture;
 extern GameScene scene;
 extern bool quit;
 
 extern int score;
+extern bool is_all_clear;
 
 void showGameOverScene() {
     Event event;
@@ -25,8 +26,12 @@ void showGameOverScene() {
         // In-Game Background
         drawInGameTexture();
 
-        // Game Over Overlay Background
-        cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, game_over_overlay_texture);
+        if (is_all_clear)
+            // All Level Clear Overlay Background
+            cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, all_lv_clear_overlay_texture);
+        else
+            // Game Over Overlay Background
+            cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, game_over_overlay_texture);
 
         // Final Score Text
         cpDrawText(255, 255, 255, 255, WINDOW_WIDTH / 2, 224,
