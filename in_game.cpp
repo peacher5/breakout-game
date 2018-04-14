@@ -4,7 +4,6 @@
 #include "headers/object.h"
 #include "headers/ball.h"
 #include "headers/brick.h"
-#include "headers/item_brick.h"
 #include "headers/missile.h"
 
 // Global shared resources from main
@@ -59,19 +58,21 @@ void initBricksLevel(int level) {
     if (level == 1) {
         n_bricks = 96;
         for (int i = 0, x = 100, y = 120; i < n_bricks; i++) {
-                bricks[i].setX(x);
-                bricks[i].setY(y);
-                bricks[i].setSize(50, 25);
-                if (i % 5) {
-                    bricks[i].setTexture(blue_brick_texture);
-                    bricks[i].setDurability(1);
-                    bricks[i].setScore(5);
-                } else {
-                    bricks[i].setTexture(stone_brick_texture);
-                    bricks[i].setCrackTexture(crack_stone_brick_texture);
-                    bricks[i].setDurability(2);
-                    bricks[i].setScore(20);
-                }
+            bricks[i].setX(x);
+            bricks[i].setY(y);
+            bricks[i].setSize(50, 25);
+            if (i % 5) {
+                bricks[i].setTexture(blue_brick_texture);
+                bricks[i].setDurability(1);
+                bricks[i].setScore(5);
+            } else {
+                bricks[i].setTexture(stone_brick_texture);
+                bricks[i].setCrackTexture(crack_stone_brick_texture);
+                bricks[i].setDurability(2);
+                bricks[i].setScore(20);
+            }
+            if (i == 2)
+                bricks[i].setBrickType(MissileAmmo);
             if (x > WINDOW_WIDTH - 200)
                 x = 100, y += 25;
             else
@@ -167,7 +168,7 @@ void showInGameScene() {
     paddle.setTexture(paddle_texture);
 
     // Init number of missiles left
-    missiles_left = 9999;
+    missiles_left = 10;
 
     // Init number of balls left
     balls_left = 2;
@@ -319,6 +320,7 @@ void showInGameScene() {
                 ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
                 ball.setY(paddle.getY() - ball.getHeight() - 1);
                 // Reset ball velocity in x/y pos
+                ball_vel = 9;
                 bounce_angle = 0;
                 ball.setVelX(ball_vel * sin(bounce_angle));
                 ball.setVelY(-ball_vel * cos(bounce_angle));
@@ -353,6 +355,14 @@ void showInGameScene() {
                     if (!bricks[i].getDurability()) {
                         score += bricks[i].getScore();
                         n_breaks++;
+                        // Brick Effects
+                        if (bricks[i].getBrickType() == BallSpeedIncrease) {
+                            ball_vel += 5;
+                            ball.setVelX(ball_vel * sin(bounce_angle));
+                            ball.setVelY(-ball_vel * cos(bounce_angle));
+                        } else if (bricks[i].getBrickType() == MissileAmmo) {
+                            missiles_left += 15;
+                        }
                     }
 
                     // Prevent ball get into brick

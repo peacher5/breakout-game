@@ -69,6 +69,9 @@ int main(int argc, char *args[]) {
     // TODO: Create MainMenu scene then remove this line
     scene = InGame;
 
+    // Reduce volume of missile fire sound
+    Mix_VolumeChunk(missile_sound, MIX_MAX_VOLUME / 6);
+
     // Loop play background music
     cpPlayMusic(background_music);
 

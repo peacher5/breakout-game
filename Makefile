@@ -21,9 +21,6 @@ ball.o: ball.cpp
 brick.o: brick.cpp
 	$(CXX) -c brick.cpp
 
-item_brick.o: item_brick.cpp
-	$(CXX) -c item_brick.cpp
-
 in_game.o: in_game.cpp
 	$(CXX) -c in_game.cpp
 

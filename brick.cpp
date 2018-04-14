@@ -24,10 +24,18 @@ void Brick::setCrackTexture(Texture crack_texture) {
     crack_texture_ = crack_texture;
 }
 
+void Brick::setBrickType(BrickType type) {
+    type_ = type;
+}
+
 int Brick::getScore() {
     return score_;
 }
 
 int Brick::getDurability() {
     return durability_;
+}
+
+BrickType Brick::getBrickType() {
+    return type_;
 }
