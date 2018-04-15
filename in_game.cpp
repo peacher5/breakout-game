@@ -11,7 +11,8 @@ extern Font rsu_24_font, rsu_26_font, rsu_30_font;
 extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound, missile_sound;
 extern Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
 extern Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture, missile_texture;
-extern Texture missiles_left_icon_texture;
+extern Texture missiles_left_icon_texture, item_brick_texture, barrier_brick_texture;
+extern Texture orange_brick_texture, red_brick_texture, yellow_brick_texture;
 extern GameScene scene;
 extern bool quit;
 
@@ -19,11 +20,27 @@ extern bool quit;
 Object paddle(124, 18);
 Ball ball(20, 20);
 Brick bricks[100];
+Brick barrier_bricks[20];
 Missile missiles[30];
 
 typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
-int n_bricks, score, balls_left, missiles_left;
-bool is_game_start, is_all_clear;
+// Store current game score
+int score;
+// Number of balls & missiles left
+int balls_left, missiles_left;
+// Start ball speed & start angle
+float ball_vel = 9, bounce_angle;
+// Count breakable bricks & barrier bricks
+int n_bricks, n_barrier_bricks;
+// Count number of breakable bricks that's destroyed
+int n_breaks;
+// is_game_start:
+//   true => Ball is release from paddle
+//  false => Ball stick w/ paddle
+bool is_game_start;
+// Check to show "ALL LEVEL CLEAR!" in GameOver scene
+// true when all bricks in the last level is destroy
+bool is_all_clear;
 
 /*  Collision Detection between two objects a and b
     Return collision side of objects a  */
@@ -57,31 +74,68 @@ CollisionSide collide(Object a, Object b) {
 void initBricksLevel(int level) {
     if (level == 1) {
         n_bricks = 96;
+        n_barrier_bricks = 0;
         for (int i = 0, x = 100, y = 120; i < n_bricks; i++) {
             bricks[i].setX(x);
             bricks[i].setY(y);
             bricks[i].setSize(50, 25);
-            if (i % 5) {
+            if (i == 36) {
+                bricks[i].setTexture(item_brick_texture);
+                bricks[i].setCrackTexture(NULL);
+                bricks[i].setBrickType(MissileAmmo);
+                bricks[i].setDurability(1);
+                bricks[i].setScore(10);
+            } else if (i % 5) {
                 bricks[i].setTexture(blue_brick_texture);
+                bricks[i].setCrackTexture(NULL);
+                bricks[i].setBrickType(NoEffect);
                 bricks[i].setDurability(1);
                 bricks[i].setScore(5);
             } else {
                 bricks[i].setTexture(stone_brick_texture);
                 bricks[i].setCrackTexture(crack_stone_brick_texture);
+                bricks[i].setBrickType(NoEffect);
                 bricks[i].setDurability(2);
                 bricks[i].setScore(20);
             }
-            if (i == 2)
-                bricks[i].setBrickType(MissileAmmo);
             if (x > WINDOW_WIDTH - 200)
                 x = 100, y += 25;
             else
                 x += 50;
         }
     } else if (level == 2) {
-
+        n_bricks = 48;
+        for (int i = 0, x = 100, y = 110, line = 1; i < n_bricks; i++) {
+            bricks[i].setX(x);
+            bricks[i].setY(y);
+            bricks[i].setSize(50, 25);
+            if (line == 1 || line == 5)
+                bricks[i].setTexture(yellow_brick_texture);
+            else if (line == 2 || line == 4 || line == 6 || line == 8)
+                bricks[i].setTexture(orange_brick_texture);
+            else
+                bricks[i].setTexture(red_brick_texture);
+            bricks[i].setCrackTexture(NULL);
+            bricks[i].setBrickType(NoEffect);
+            bricks[i].setDurability(1);
+            bricks[i].setScore(5);
+            if (x >= WINDOW_WIDTH - 200)
+                line++, x = line % 2 == 0 ? 150 : 100, y += 25;
+            else
+                x += 100;
+        }
+        n_barrier_bricks = 10;
+        for (int i = 0, x = 50, y = 360; i < 10; i++, x += 50) {
+            barrier_bricks[i].setX(x);
+            barrier_bricks[i].setY(y);
+            barrier_bricks[i].setSize(50, 25);
+            barrier_bricks[i].setTexture(barrier_brick_texture);
+            barrier_bricks[i].setBrickType(Barrier);
+            if ((i + 1) % 2 == 0)
+                x += 50;
+        }
     } else if (level == 3) {
-
+        // TODO: Design the last lv.
     }
 }
 
@@ -114,10 +168,14 @@ void drawInGameTexture() {
     // Ball
     ball.drawTexture();
 
-    // Bricks (if brick still have durability then draw a brick)
+    // Breakable Bricks (if brick still have durability then draw a brick)
     for (int i = 0; i < n_bricks; i++)
         if (bricks[i].getDurability())
             bricks[i].drawTexture();
+    
+    // Barrier Bricks
+    for (int i = 0; i < n_barrier_bricks; i++)
+        barrier_bricks[i].drawTexture();
 
     // In-game Frame
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
@@ -129,11 +187,32 @@ void drawInGameTexture() {
     cpDrawText(255, 255, 255, 216, 758, 43, to_string(balls_left).c_str(), rsu_30_font, true);
 }
 
+// Called when the brick is break
+void handleBrickEvent(Brick &brick) {
+    // Play hit sound
+    cpPlaySound(hit_brick_sound);
+
+    // Decrease durability by 1
+    brick.decreaseDurability();
+
+    // + Score when brick is break
+    if (!brick.getDurability()) {
+        score += brick.getScore();
+        n_breaks++;
+        // Brick Effects
+        if (brick.getBrickType() == BallSpeedIncrease) {
+            ball_vel += 5;
+            ball.setVelX(ball_vel * sin(bounce_angle));
+            ball.setVelY(-ball_vel * cos(bounce_angle));
+        } else if (brick.getBrickType() == MissileAmmo) {
+            missiles_left += 15;
+        }
+    }
+}
+
 void showInGameScene() {
     // For store event from PollEvent function
     Event event;
-    // Set ball speed & start angle
-    float ball_vel = 9, bounce_angle;
     // Set max ball angle when collide w/ paddle = 70 degee angle
     const float MAX_BOUNCE_ANGLE = 7 * M_PI / 18;
     // Temp vars for calculate angle
@@ -142,8 +221,6 @@ void showInGameScene() {
     bool is_mouse_down = false;
     // Missile fire delay
     int missile_tick = 0;
-    // Count number of bricks that's destroyed
-    int n_breaks = 0;
     // Store collision side
     CollisionSide side;
 
@@ -176,11 +253,10 @@ void showInGameScene() {
     // Init start score
     score = 0;
 
-    for (int level = 1; level <= 3; level++) {
+    for (int level = 1; level <= 2; level++) {
         // Reset Missiles
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 30; i++)
             missiles[i].setVisible(false);
-        }
 
         // Reset game status (ball will stick w/ paddle)
         is_game_start = false;
@@ -195,7 +271,7 @@ void showInGameScene() {
         ball.setVelY(-ball_vel * cos(bounce_angle));
 
         // Init bricks for level 1
-        initBricksLevel(1);
+        initBricksLevel(level);
 
         // Reset brick break count
         n_breaks = 0;
@@ -274,15 +350,7 @@ void showInGameScene() {
                         for (int j = 0; j < n_bricks; j++) {
                             if (bricks[j].getDurability() && collide(missiles[i], bricks[j])) {
                                 missiles[i].setVisible(false);
-                                // Play hit sound
-                                cpPlaySound(hit_brick_sound);
-                                // Decrease brick durability by 1
-                                bricks[j].decreaseDurability();
-                                // + Score when brick is break
-                                if (!bricks[j].getDurability()) {
-                                    score += bricks[j].getScore();
-                                    n_breaks++;
-                                }
+                                handleBrickEvent(bricks[j]);
                             }
                         }
                     }
@@ -326,44 +394,64 @@ void showInGameScene() {
                 ball.setVelY(-ball_vel * cos(bounce_angle));
             }
 
-            // Prevent ball get out of window (In-game Frame side border width = 9px)
-            if (ball.getX() < 10) {
+            // Prevent ball get out of window (In-game Frame side border width = 9px, height = 63px)
+            // Left side of In-game frame
+            if (ball.getX() <= 9) {
                 ball.setX(10);
                 ball.invertVelX();
             }
+            // Right side of In-game frame
             if (ball.getX() + ball.getWidth() > WINDOW_WIDTH - 10) {
                 ball.setX(WINDOW_WIDTH - ball.getWidth() - 10);
                 ball.invertVelX();
             }
-            // In-game Frame header height = 63px
-            if (ball.getY() < 64) {
+            // Top of In-game frame
+            if (ball.getY() <= 63) {
                 cpPlaySound(hit_top_sound);
                 ball.setY(64);
                 ball.invertVelY();
             }
 
-            for (int i = 0; i < n_bricks; i++) {
-                // When ball hit a brick
-                if (bricks[i].getDurability() && (side = collide(bricks[i], ball))) {
+            // Check all barrier bricks
+            for (int i = 0; i < n_barrier_bricks; i++) {
+                // When ball hit a barrier brick
+                if ((side = collide(barrier_bricks[i], ball))) {
                     // Play hit sound
                     cpPlaySound(hit_brick_sound);
-
-                    // Decrease durability by 1
-                    bricks[i].decreaseDurability();
-
-                    // + Score when brick is break
-                    if (!bricks[i].getDurability()) {
-                        score += bricks[i].getScore();
-                        n_breaks++;
-                        // Brick Effects
-                        if (bricks[i].getBrickType() == BallSpeedIncrease) {
-                            ball_vel += 5;
-                            ball.setVelX(ball_vel * sin(bounce_angle));
-                            ball.setVelY(-ball_vel * cos(bounce_angle));
-                        } else if (bricks[i].getBrickType() == MissileAmmo) {
-                            missiles_left += 15;
-                        }
+                    // Prevent ball get into barrier brick
+                    switch (side) {
+                        case CollideTop:
+                            ball.setY(barrier_bricks[i].getY() - ball.getHeight() - 1);
+                            // Set ball to go up only
+                            ball.setVelY(-fabs(ball.getVelY()));
+                            break;
+                        case CollideBottom:
+                            ball.setY(barrier_bricks[i].getY() + bricks[i].getHeight() + 1);
+                            // Set ball to go down only
+                            ball.setVelY(fabs(ball.getVelY()));
+                            break;
+                        case CollideLeft:
+                            ball.setX(barrier_bricks[i].getX() - ball.getWidth() - 1);
+                            // Set ball to go only left side
+                            ball.setVelX(-fabs(ball.getVelX()));
+                            break;
+                        case CollideRight:
+                            ball.setX(barrier_bricks[i].getX() + bricks[i].getWidth() + 1);
+                            // Set ball to go only right side
+                            ball.setVelX(fabs(ball.getVelX()));
+                            break;
+                        // suppress compiler warning
+                        default:
+                            break;
                     }
+                }
+            }
+
+            // Check all breakable bricks
+            for (int i = 0; i < n_bricks; i++) {
+                // When ball hit a breakable brick
+                if (bricks[i].getDurability() && (side = collide(bricks[i], ball))) {
+                    handleBrickEvent(bricks[i]);
 
                     // Prevent ball get into brick
                     switch (side) {
@@ -394,7 +482,7 @@ void showInGameScene() {
                 }
             }
 
-            // When ball hit paddle
+            // When ball hit the paddle
             if ((side = collide(paddle, ball))) {
                 cpPlaySound(hit_paddle_sound);
 

@@ -3,7 +3,7 @@
 
 #include "object.h"
 
-typedef enum {NoEffect, BallsSpread, BallSpeedIncrease, MissileAmmo} BrickType;
+typedef enum {NoEffect, Barrier, BallsSpread, BallSpeedIncrease, MissileAmmo} BrickType;
 
 class Brick: public Object {
     protected:
