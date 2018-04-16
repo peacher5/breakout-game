@@ -6,6 +6,11 @@ Object::Object(float width, float height) :
 Object::Object(float x, float y, float width, float height) :
     x_(x), y_(y), width_(width), height_(height) {}
 
+void Object::setPos(float x, float y) {
+    x_ = x;
+    y_ = y;
+}
+
 void Object::setX(float x) {
     x_ = x;
 }

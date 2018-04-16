@@ -17,11 +17,15 @@ extern GameScene scene;
 extern bool quit;
 
 // Global vars for In-game Scene
+// Max object on screen
+const int MAX_BALLS = 20;
+const int MAX_MISSILES = 30;
+
 Object paddle(124, 18);
-Ball ball(20, 20);
+Ball balls[MAX_BALLS];
 Brick bricks[100];
 Brick barrier_bricks[20];
-Missile missiles[30];
+Missile missiles[MAX_MISSILES];
 
 typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
 // Store current game score
@@ -34,6 +38,8 @@ float ball_vel = 9, bounce_angle;
 int n_bricks, n_barrier_bricks;
 // Count number of breakable bricks that's destroyed
 int n_breaks;
+// Number of balls on screen
+int n_balls;
 // is_game_start:
 //   true => Ball is release from paddle
 //  false => Ball stick w/ paddle
@@ -76,10 +82,15 @@ void initBricksLevel(int level) {
         n_bricks = 96;
         n_barrier_bricks = 0;
         for (int i = 0, x = 100, y = 120; i < n_bricks; i++) {
-            bricks[i].setX(x);
-            bricks[i].setY(y);
+            bricks[i].setPos(x, y);
             bricks[i].setSize(50, 25);
-            if (i == 36) {
+            if (i == 7) {
+                bricks[i].setTexture(item_brick_texture);
+                bricks[i].setCrackTexture(NULL);
+                bricks[i].setBrickType(BallsSpread);
+                bricks[i].setDurability(1);
+                bricks[i].setScore(10);
+            } else if (i == 36) {
                 bricks[i].setTexture(item_brick_texture);
                 bricks[i].setCrackTexture(NULL);
                 bricks[i].setBrickType(MissileAmmo);
@@ -106,8 +117,7 @@ void initBricksLevel(int level) {
     } else if (level == 2) {
         n_bricks = 48;
         for (int i = 0, x = 100, y = 110, line = 1; i < n_bricks; i++) {
-            bricks[i].setX(x);
-            bricks[i].setY(y);
+            bricks[i].setPos(x, y);
             bricks[i].setSize(50, 25);
             if (line == 1 || line == 5)
                 bricks[i].setTexture(yellow_brick_texture);
@@ -124,15 +134,16 @@ void initBricksLevel(int level) {
             else
                 x += 100;
         }
-        n_barrier_bricks = 10;
-        for (int i = 0, x = 50, y = 360; i < 10; i++, x += 50) {
-            barrier_bricks[i].setX(x);
-            barrier_bricks[i].setY(y);
+        n_barrier_bricks = 8;
+        for (int i = 0, x = 50, y = 360; i < n_barrier_bricks; i++, x += 50) {
+            barrier_bricks[i].setPos(x, y);
             barrier_bricks[i].setSize(50, 25);
             barrier_bricks[i].setTexture(barrier_brick_texture);
             barrier_bricks[i].setBrickType(Barrier);
             if ((i + 1) % 2 == 0)
                 x += 50;
+            if (i == 3)
+                x += 150;
         }
     } else if (level == 3) {
         // TODO: Design the last lv.
@@ -151,7 +162,7 @@ void drawInGameTexture() {
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_bg_texture);
 
     // Missile
-    for (int i = 0; i < 30; i++)
+    for (int i = 0; i < MAX_MISSILES; i++)
         if (missiles[i].isVisible())
             missiles[i].drawTexture();
 
@@ -166,13 +177,15 @@ void drawInGameTexture() {
     paddle.drawTexture();
 
     // Ball
-    ball.drawTexture();
+    for (int i = 0; i < MAX_BALLS; i++)
+        if (balls[i].isOnScreen())
+            balls[i].drawTexture();
 
     // Breakable Bricks (if brick still have durability then draw a brick)
     for (int i = 0; i < n_bricks; i++)
         if (bricks[i].getDurability())
             bricks[i].drawTexture();
-    
+
     // Barrier Bricks
     for (int i = 0; i < n_barrier_bricks; i++)
         barrier_bricks[i].drawTexture();
@@ -202,11 +215,31 @@ void handleBrickEvent(Brick &brick) {
         // Brick Effects
         if (brick.getBrickType() == BallSpeedIncrease) {
             ball_vel += 5;
-            ball.setVelX(ball_vel * sin(bounce_angle));
-            ball.setVelY(-ball_vel * cos(bounce_angle));
+            for (int i = 0; i < MAX_BALLS; i++) {
+                if (balls[i].isOnScreen()) {
+                    balls[i].setVelX(ball_vel * sin(bounce_angle));
+                    balls[i].setVelY(ball_vel * cos(bounce_angle));
+                }
+            }
+        } else if (brick.getBrickType() == BallsSpread) {
+            float angle = 0;
+            for (int i = 0; i < MAX_BALLS; i++) {
+                if (!balls[i].isOnScreen()) {
+                    balls[i].setPos(balls[0].getX(), balls[0].getY());
+                    balls[i].setVelX(ball_vel * sin(angle * M_PI / 180));
+                    balls[i].setVelY(ball_vel * cos(angle * M_PI / 180));
+                    balls[i].setIsOnScreen(true);
+                    n_balls++;
+                    angle += 22.5;
+                    if (angle >= 360)
+                        angle = 0;
+                    else if (angle == 90 || angle == 270)
+                        angle += 22.5;
+                }
+            }
         } else if (brick.getBrickType() == MissileAmmo) {
             missiles_left += 15;
-        }
+        } 
     }
 }
 
@@ -230,6 +263,9 @@ void showInGameScene() {
     // Set mouse x position to center
     setMouseX(WINDOW_WIDTH / 2);
 
+    // Set paddle texture
+    paddle.setTexture(paddle_texture);
+
     // Init paddle position
     paddle.setX(getMouseX() - paddle.getWidth() / 2);
     paddle.setY(WINDOW_HEIGHT - 80);
@@ -240,9 +276,11 @@ void showInGameScene() {
     else if (paddle.getX() + paddle.getWidth() > WINDOW_WIDTH - 10)
         paddle.setX(WINDOW_WIDTH - paddle.getWidth() - 10);
 
-    // Set ball/paddle texture
-    ball.setTexture(ball_texture);
-    paddle.setTexture(paddle_texture);
+    // Init balls
+    for (int i = 0; i < MAX_BALLS; i++) {
+        balls[i].setSize(20, 20);
+        balls[i].setTexture(ball_texture);
+    }
 
     // Init number of missiles left
     missiles_left = 10;
@@ -261,14 +299,19 @@ void showInGameScene() {
         // Reset game status (ball will stick w/ paddle)
         is_game_start = false;
 
-        // Reset ball position
-        ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
-        ball.setY(paddle.getY() - ball.getHeight() - 1);
-
-        // Reset ball velocity in x/y pos (0 degree = go up straight)
+        // Reset balls velocity in x/y pos (0 degree = go up straight)
         bounce_angle = 0;
-        ball.setVelX(ball_vel * sin(bounce_angle));
-        ball.setVelY(-ball_vel * cos(bounce_angle));
+        for (int i = 0; i < MAX_BALLS; i++) {
+            balls[i].setVelX(ball_vel * sin(bounce_angle));
+            balls[i].setVelY(-ball_vel * cos(bounce_angle));
+            balls[i].setIsOnScreen(false);
+        }
+
+        // Reset ball
+        n_balls = 1;
+        balls[0].setX(paddle.getX() + paddle.getWidth() / 2 - balls[0].getWidth() / 2);
+        balls[0].setY(paddle.getY() - balls[0].getHeight() - 1);
+        balls[0].setIsOnScreen(true);
 
         // Init bricks for level 1
         initBricksLevel(level);
@@ -295,7 +338,8 @@ void showInGameScene() {
                     return;
                 }
                 // Start the game (release ball) when user press left click
-                if (!is_game_start && event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+                if (!is_game_start && event.type == SDL_MOUSEBUTTONDOWN &&
+                    event.button.button == SDL_BUTTON_LEFT) {
                     is_game_start = true;
                     break;
                 }
@@ -320,7 +364,8 @@ void showInGameScene() {
                                 missiles[i].setX(paddle.getX() + 3);
                             else
                                 // Right side of paddle
-                                missiles[i].setX(paddle.getX() + paddle.getWidth() - (missiles[i].getWidth() + 3));
+                                missiles[i].setX(paddle.getX() + paddle.getWidth() -
+                                                 (missiles[i].getWidth() + 3));
                             missiles[i].setY(paddle.getY());
                             missiles[i].setTexture(missile_texture);
                             missiles[i].setVisible(true);
@@ -338,7 +383,7 @@ void showInGameScene() {
                     missile_tick++;
             }
 
-            for (int i = 0; i < 30; i++) {
+            for (int i = 0; i < MAX_MISSILES; i++) {
                 if (missiles[i].isVisible()) {
                     // Missile Speed = 7
                     missiles[i].setY(missiles[i].getY() - 7);
@@ -346,11 +391,17 @@ void showInGameScene() {
                     if (missiles[i].getY() + missiles[i].getHeight() < 64)
                         missiles[i].setVisible(false);
                     else {
-                        // When missile hit a brick
-                        for (int j = 0; j < n_bricks; j++) {
-                            if (bricks[j].getDurability() && collide(missiles[i], bricks[j])) {
+                        // When missile hit a barrier brick
+                        for (int n = 0; n < n_barrier_bricks; n++)
+                            if (collide(missiles[i], barrier_bricks[n]))
                                 missiles[i].setVisible(false);
-                                handleBrickEvent(bricks[j]);
+                        // When missile hit a breakable brick
+                        for (int n = 0; n < n_bricks; n++) {
+                            if (bricks[n].getDurability() && collide(missiles[i], bricks[n])) {
+                                missiles[i].setVisible(false);
+                                handleBrickEvent(bricks[n]);
+                                // Bonus score
+                                score += 3;
                             }
                         }
                     }
@@ -368,13 +419,148 @@ void showInGameScene() {
 
             if (!is_game_start)
                 // Set ball position to center of paddle
-                ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
-            else
+                balls[0].setX(paddle.getX() + paddle.getWidth() / 2 - balls[0].getWidth() / 2);
+            else {
                 // Set ball position related to ball x/y velocity
-                ball.move();
+                for (int i = 0; i < MAX_BALLS; i++)
+                    if (balls[i].isOnScreen())
+                        balls[i].move();
+            }
 
-            // When Ball fall down
-            if (ball.getY() > WINDOW_HEIGHT) {
+            for (int i = 0; i < MAX_BALLS; i++) {
+                if (balls[i].isOnScreen()) {
+                    // When Ball fall down
+                    if (balls[i].getY() > WINDOW_HEIGHT) {
+                        balls[i].setIsOnScreen(false);
+                        n_balls--;
+                    }
+
+                    // Prevent ball get out of window (In-game Frame side border width = 9px, height = 63px)
+                    // Left side of In-game frame
+                    if (balls[i].getX() <= 9) {
+                        balls[i].setX(10);
+                        balls[i].invertVelX();
+                    }
+                    // Right side of In-game frame
+                    if (balls[i].getX() + balls[i].getWidth() > WINDOW_WIDTH - 10) {
+                        balls[i].setX(WINDOW_WIDTH - balls[i].getWidth() - 10);
+                        balls[i].invertVelX();
+                    }
+                    // Top of In-game frame
+                    if (balls[i].getY() <= 63) {
+                        cpPlaySound(hit_top_sound);
+                        balls[i].setY(64);
+                        balls[i].invertVelY();
+                    }
+
+                    // Check all barrier bricks
+                    for (int n = 0; n < n_barrier_bricks; n++) {
+                        // When ball hit a barrier brick
+                        if ((side = collide(barrier_bricks[n], balls[i]))) {
+                            // Play hit sound
+                            cpPlaySound(hit_brick_sound);
+                            // Prevent ball get into barrier brick
+                            switch (side) {
+                                case CollideTop:
+                                    balls[i].setY(barrier_bricks[n].getY() - balls[i].getHeight() - 1);
+                                    // Set ball to go up only
+                                    balls[i].setVelY(-fabs(balls[i].getVelY()));
+                                    break;
+                                case CollideBottom:
+                                    balls[i].setY(barrier_bricks[n].getY() + bricks[n].getHeight() + 1);
+                                    // Set ball to go down only
+                                    balls[i].setVelY(fabs(balls[i].getVelY()));
+                                    break;
+                                case CollideLeft:
+                                    balls[i].setX(barrier_bricks[n].getX() - balls[i].getWidth() - 1);
+                                    // Set ball to go only left side
+                                    balls[i].setVelX(-fabs(balls[i].getVelX()));
+                                    break;
+                                case CollideRight:
+                                    balls[i].setX(barrier_bricks[n].getX() + bricks[n].getWidth() + 1);
+                                    // Set ball to go only right side
+                                    balls[i].setVelX(fabs(balls[i].getVelX()));
+                                    break;
+                                // suppress compiler warning
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+
+                    // Check all breakable bricks
+                    for (int n = 0; n < n_bricks; n++) {
+                        // When ball hit a breakable brick
+                        if (bricks[n].getDurability() && (side = collide(bricks[n], balls[i]))) {
+                            handleBrickEvent(bricks[n]);
+
+                            // Prevent ball get into brick
+                            switch (side) {
+                                case CollideTop:
+                                    balls[i].setY(bricks[n].getY() - balls[i].getHeight() - 1);
+                                    // Set ball to go up only
+                                    balls[i].setVelY(-fabs(balls[i].getVelY()));
+                                    break;
+                                case CollideBottom:
+                                    balls[i].setY(bricks[n].getY() + bricks[n].getHeight() + 1);
+                                    // Set ball to go down only
+                                    balls[i].setVelY(fabs(balls[i].getVelY()));
+                                    break;
+                                case CollideLeft:
+                                    balls[i].setX(bricks[n].getX() - balls[i].getWidth() - 1);
+                                    // Set ball to go only left side
+                                    balls[i].setVelX(-fabs(balls[i].getVelX()));
+                                    break;
+                                case CollideRight:
+                                    balls[i].setX(bricks[n].getX() + bricks[n].getWidth() + 1);
+                                    // Set ball to go only right side
+                                    balls[i].setVelX(fabs(balls[i].getVelX()));
+                                    break;
+                                // suppress compiler warning
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+
+                    // When ball hit the paddle
+                    if ((side = collide(paddle, balls[i]))) {
+                        cpPlaySound(hit_paddle_sound);
+
+                        // Set new ball angle related to collide position on paddle
+                        relative_intersect = (balls[i].getX() + balls[i].getWidth() / 2) -
+                                            (paddle.getX() + paddle.getWidth() / 2);
+                        normalized_relative_intersect = relative_intersect / (paddle.getWidth() / 2);
+                        bounce_angle = normalized_relative_intersect * MAX_BOUNCE_ANGLE;
+
+                        balls[i].setVelX(ball_vel * sin(bounce_angle));
+                        balls[i].setVelY(-ball_vel * cos(bounce_angle));
+
+                        // Prevent ball get into paddle
+                        switch (side) {
+                            case CollideTop:
+                                balls[i].setY(paddle.getY() - balls[i].getHeight() - 1);
+                                break;
+                            case CollideLeft:
+                                balls[i].setX(paddle.getX() - balls[i].getWidth() - 1);
+                                // Set ball to go only left side
+                                balls[i].setVelX(-fabs(balls[i].getVelX()));
+                                break;
+                            case CollideRight:
+                                balls[i].setX(paddle.getX() + paddle.getWidth() + 1);
+                                // Set ball to go only right side
+                                balls[i].setVelX(fabs(balls[i].getVelX()));
+                                break;
+                            // suppress compiler warning
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+
+            // No balls left on screen
+            if (!n_balls) {
                 // Go to GameOver scene when no balls left to play
                 if (!balls_left) {
                     scene = GameOver;
@@ -384,135 +570,16 @@ void showInGameScene() {
                 is_game_start = false;
                 // Decrease number of balls left by 1
                 balls_left--;
+                n_balls = 1;
                 // Reset ball position
-                ball.setX(paddle.getX() + paddle.getWidth() / 2 - ball.getWidth() / 2);
-                ball.setY(paddle.getY() - ball.getHeight() - 1);
+                balls[0].setIsOnScreen(true);
+                balls[0].setX(paddle.getX() + paddle.getWidth() / 2 - balls[0].getWidth() / 2);
+                balls[0].setY(paddle.getY() - balls[0].getHeight() - 1);
                 // Reset ball velocity in x/y pos
                 ball_vel = 9;
                 bounce_angle = 0;
-                ball.setVelX(ball_vel * sin(bounce_angle));
-                ball.setVelY(-ball_vel * cos(bounce_angle));
-            }
-
-            // Prevent ball get out of window (In-game Frame side border width = 9px, height = 63px)
-            // Left side of In-game frame
-            if (ball.getX() <= 9) {
-                ball.setX(10);
-                ball.invertVelX();
-            }
-            // Right side of In-game frame
-            if (ball.getX() + ball.getWidth() > WINDOW_WIDTH - 10) {
-                ball.setX(WINDOW_WIDTH - ball.getWidth() - 10);
-                ball.invertVelX();
-            }
-            // Top of In-game frame
-            if (ball.getY() <= 63) {
-                cpPlaySound(hit_top_sound);
-                ball.setY(64);
-                ball.invertVelY();
-            }
-
-            // Check all barrier bricks
-            for (int i = 0; i < n_barrier_bricks; i++) {
-                // When ball hit a barrier brick
-                if ((side = collide(barrier_bricks[i], ball))) {
-                    // Play hit sound
-                    cpPlaySound(hit_brick_sound);
-                    // Prevent ball get into barrier brick
-                    switch (side) {
-                        case CollideTop:
-                            ball.setY(barrier_bricks[i].getY() - ball.getHeight() - 1);
-                            // Set ball to go up only
-                            ball.setVelY(-fabs(ball.getVelY()));
-                            break;
-                        case CollideBottom:
-                            ball.setY(barrier_bricks[i].getY() + bricks[i].getHeight() + 1);
-                            // Set ball to go down only
-                            ball.setVelY(fabs(ball.getVelY()));
-                            break;
-                        case CollideLeft:
-                            ball.setX(barrier_bricks[i].getX() - ball.getWidth() - 1);
-                            // Set ball to go only left side
-                            ball.setVelX(-fabs(ball.getVelX()));
-                            break;
-                        case CollideRight:
-                            ball.setX(barrier_bricks[i].getX() + bricks[i].getWidth() + 1);
-                            // Set ball to go only right side
-                            ball.setVelX(fabs(ball.getVelX()));
-                            break;
-                        // suppress compiler warning
-                        default:
-                            break;
-                    }
-                }
-            }
-
-            // Check all breakable bricks
-            for (int i = 0; i < n_bricks; i++) {
-                // When ball hit a breakable brick
-                if (bricks[i].getDurability() && (side = collide(bricks[i], ball))) {
-                    handleBrickEvent(bricks[i]);
-
-                    // Prevent ball get into brick
-                    switch (side) {
-                        case CollideTop:
-                            ball.setY(bricks[i].getY() - ball.getHeight() - 1);
-                            // Set ball to go up only
-                            ball.setVelY(-fabs(ball.getVelY()));
-                            break;
-                        case CollideBottom:
-                            ball.setY(bricks[i].getY() + bricks[i].getHeight() + 1);
-                            // Set ball to go down only
-                            ball.setVelY(fabs(ball.getVelY()));
-                            break;
-                        case CollideLeft:
-                            ball.setX(bricks[i].getX() - ball.getWidth() - 1);
-                            // Set ball to go only left side
-                            ball.setVelX(-fabs(ball.getVelX()));
-                            break;
-                        case CollideRight:
-                            ball.setX(bricks[i].getX() + bricks[i].getWidth() + 1);
-                            // Set ball to go only right side
-                            ball.setVelX(fabs(ball.getVelX()));
-                            break;
-                        // suppress compiler warning
-                        default:
-                            break;
-                    }
-                }
-            }
-
-            // When ball hit the paddle
-            if ((side = collide(paddle, ball))) {
-                cpPlaySound(hit_paddle_sound);
-
-                // Set new ball angle related to collide position on paddle
-                relative_intersect = (ball.getX() + ball.getWidth() / 2) - (paddle.getX() + paddle.getWidth() / 2);
-                normalized_relative_intersect = relative_intersect / (paddle.getWidth() / 2);
-                bounce_angle = normalized_relative_intersect * MAX_BOUNCE_ANGLE;
-
-                ball.setVelX(ball_vel * sin(bounce_angle));
-                ball.setVelY(-ball_vel * cos(bounce_angle));
-
-                // Prevent ball get into paddle
-                switch (side) {
-                    case CollideTop:
-                        ball.setY(paddle.getY() - ball.getHeight() - 1);
-                        break;
-                    case CollideLeft:
-                        ball.setX(paddle.getX() - ball.getWidth() - 1);
-                        // Set ball to go only left side
-                        ball.setVelX(-fabs(ball.getVelX()));
-                        break;
-                    case CollideRight:
-                        ball.setX(paddle.getX() + paddle.getWidth() + 1);
-                        // Set ball to go only right side
-                        ball.setVelX(fabs(ball.getVelX()));
-                        break;
-                    // suppress compiler warning
-                    default:
-                        break;
-                }
+                balls[0].setVelX(ball_vel * sin(bounce_angle));
+                balls[0].setVelY(-ball_vel * cos(bounce_angle));
             }
 
             cpDelay(10);
