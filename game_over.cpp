@@ -59,6 +59,11 @@ void showGameOverScene() {
                 quit = true;
                 return;
             }
+            // Exit when user released ESC key
+            if (event.type == KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
+                quit = true;
+                return;
+            }
             // When user press left click (TEST)
             if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
                 scene = InGame;

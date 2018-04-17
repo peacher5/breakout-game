@@ -18,7 +18,7 @@ extern bool quit;
 
 // Global vars for In-game Scene
 // Max object on screen
-const int MAX_BALLS = 20;
+const int MAX_BALLS = 50;
 const int MAX_MISSILES = 30;
 
 Object paddle(124, 18);
@@ -28,8 +28,8 @@ Brick barrier_bricks[20];
 Missile missiles[MAX_MISSILES];
 
 typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
-// Store current game score
-int score;
+// Store current game score, increase animate score & animation delay tick
+int score, animate_score, animate_tick;
 // Number of balls & missiles left
 int balls_left, missiles_left;
 // Start ball speed & start angle
@@ -44,8 +44,9 @@ int n_balls;
 //   true => Ball is release from paddle
 //  false => Ball stick w/ paddle
 bool is_game_start;
-// Check to show "ALL LEVEL CLEAR!" in GameOver scene
-// true when all bricks in the last level is destroy
+// is_all_clear:
+//   Check to show "ALL LEVEL CLEAR!" in GameOver scene
+//   true when all bricks in the last level is destroy
 bool is_all_clear;
 
 /*  Collision Detection between two objects a and b
@@ -193,11 +194,39 @@ void drawInGameTexture() {
     // In-game Frame
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
 
-    // Score text
-    drawScoreText(score);
+    // Animate increase score text
+    if (animate_tick && animate_score < score) {
+        animate_score++;
+        animate_tick = 0;
+    } else
+        animate_tick++;
+    drawScoreText(animate_score);
 
     // Balls left text
     cpDrawText(255, 255, 255, 216, 758, 43, to_string(balls_left).c_str(), rsu_30_font, true);
+}
+
+void spreadBalls() {
+    float angle = 0;
+    int n_spread_balls = 15;
+    for (int i = 0; i < MAX_BALLS && n_spread_balls; i++) {
+        if (!balls[i].isOnScreen()) {
+            for (int n = 0; n < MAX_BALLS; n++)
+                if (balls[n].isOnScreen()) {
+                    balls[i].setPos(balls[n].getX(), balls[n].getY());
+                    break;
+                }
+            balls[i].setVelX(ball_vel * sin(angle * M_PI / 180));
+            balls[i].setVelY(ball_vel * cos(angle * M_PI / 180));
+            balls[i].setIsOnScreen(true);
+            n_balls++, n_spread_balls--;
+            angle += 22.5;
+            if (angle >= 360)
+                angle = 0;
+            else if (fmod(angle, 90) == 0)
+                angle += 22.5;
+        }
+    }
 }
 
 // Called when the brick is break
@@ -213,7 +242,11 @@ void handleBrickEvent(Brick &brick) {
         score += brick.getScore();
         n_breaks++;
         // Brick Effects
-        if (brick.getBrickType() == BallSpeedIncrease) {
+        if (brick.getBrickType() == MissileAmmo) {
+            missiles_left += 15;
+        } else if (brick.getBrickType() == BallsSpread) {
+            spreadBalls();
+        } else if (brick.getBrickType() == BallSpeedIncrease) {
             ball_vel += 5;
             for (int i = 0; i < MAX_BALLS; i++) {
                 if (balls[i].isOnScreen()) {
@@ -221,25 +254,7 @@ void handleBrickEvent(Brick &brick) {
                     balls[i].setVelY(ball_vel * cos(bounce_angle));
                 }
             }
-        } else if (brick.getBrickType() == BallsSpread) {
-            float angle = 0;
-            for (int i = 0; i < MAX_BALLS; i++) {
-                if (!balls[i].isOnScreen()) {
-                    balls[i].setPos(balls[0].getX(), balls[0].getY());
-                    balls[i].setVelX(ball_vel * sin(angle * M_PI / 180));
-                    balls[i].setVelY(ball_vel * cos(angle * M_PI / 180));
-                    balls[i].setIsOnScreen(true);
-                    n_balls++;
-                    angle += 22.5;
-                    if (angle >= 360)
-                        angle = 0;
-                    else if (angle == 90 || angle == 270)
-                        angle += 22.5;
-                }
-            }
-        } else if (brick.getBrickType() == MissileAmmo) {
-            missiles_left += 15;
-        } 
+        }
     }
 }
 
@@ -291,6 +306,8 @@ void showInGameScene() {
     // Init start score
     score = 0;
 
+    animate_tick = 0;
+
     for (int level = 1; level <= 2; level++) {
         // Reset Missiles
         for (int i = 0; i < 30; i++)
@@ -332,7 +349,7 @@ void showInGameScene() {
                     quit = true;
                     return;
                 }
-                // User released ESC key
+                // Exit when user released ESC key
                 if (event.type == KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
                     quit = true;
                     return;
@@ -341,6 +358,11 @@ void showInGameScene() {
                 if (!is_game_start && event.type == SDL_MOUSEBUTTONDOWN &&
                     event.button.button == SDL_BUTTON_LEFT) {
                     is_game_start = true;
+                    break;
+                }
+                // R Key Test
+                if (is_game_start && event.type == KEYDOWN && event.key.keysym.sym == SDLK_r) {
+                    spreadBalls();
                     break;
                 }
                 // Left click mouse hold down detect
