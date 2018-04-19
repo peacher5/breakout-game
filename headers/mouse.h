@@ -11,4 +11,6 @@ int getMouseX();
 
 void getMousePosition(int* mouse_x, int* mouse_y);
 
+bool isLeftClickPressed();
+
 #endif // MOUSE_H

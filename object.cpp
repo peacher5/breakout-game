@@ -1,10 +1,10 @@
 #include "headers/object.h"
 
 Object::Object(float width, float height) :
-    x_(0), y_(0), width_(width), height_(height) {}
+    x_(0), y_(0), width_(width), height_(height), texture_(NULL) {}
 
 Object::Object(float x, float y, float width, float height) :
-    x_(x), y_(y), width_(width), height_(height) {}
+    x_(x), y_(y), width_(width), height_(height), texture_(NULL) {}
 
 void Object::setPos(float x, float y) {
     x_ = x;
@@ -53,5 +53,6 @@ float Object::getHeight() {
 }
 
 void Object::drawTexture() {
-    cpDrawTexture(Object::getX(), Object::getY(), Object::getWidth(), Object::getHeight(), texture_);
+    if (texture_)
+        cpDrawTexture(x_, y_, width_, height_, texture_);
 }

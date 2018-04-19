@@ -4,7 +4,8 @@ CXX = g++
 CFLAGS =
 LDFLAGS = -L/usr/local/lib -lSDL -lSDLmain -lSDL_ttf -lSDL_image -lSDL_mixer -framework Cocoa -framework OpenGL
 
-OBJECTS = cp_functions.o main.o mouse.o object.o ball.o brick.o in_game.o game_over.o scoreboard.o missile.o
+OBJECTS = cp_functions.o main.o mouse.o object.o ball.o brick.o in_game.o game_over.o scoreboard.o missile.o\
+          main_menu.o button.o
 
 all: Breakout
 
@@ -22,6 +23,12 @@ ball.o: ball.cpp
 
 brick.o: brick.cpp
 	$(CXX) $(CFLAGS) -c brick.cpp
+
+button.o: button.cpp
+	$(CXX) $(CFLAGS) -c button.cpp
+
+main_menu.o: main_menu.cpp
+	$(CXX) $(CFLAGS) -c main_menu.cpp
 
 in_game.o: in_game.cpp
 	$(CXX) $(CFLAGS) -c in_game.cpp
