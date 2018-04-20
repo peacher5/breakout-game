@@ -1,6 +1,7 @@
 #include <cmath>
 #include <string>
 #include "headers/global.h"
+#include "headers/pause_menu.h"
 #include "headers/object.h"
 #include "headers/ball.h"
 #include "headers/brick.h"
@@ -9,6 +10,7 @@
 // Global shared resources from main
 extern Font rsu_24_font, rsu_26_font, rsu_30_font;
 extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound, missile_sound;
+extern Texture black_bg_texture;
 extern Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
 extern Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture, missile_texture;
 extern Texture missiles_left_icon_texture, item_brick_texture, barrier_brick_texture;
@@ -28,6 +30,8 @@ Brick barrier_bricks[20];
 Missile missiles[MAX_MISSILES];
 
 typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
+// Animate dim screen at start (255 to 0)
+int opacity;
 // Store current game score, increase animate score & animation delay tick
 int score, animate_score, animate_tick;
 // Number of balls & missiles left
@@ -204,6 +208,14 @@ void drawInGameTexture() {
 
     // Balls left text
     cpDrawText(255, 255, 255, 216, 758, 43, to_string(balls_left).c_str(), rsu_30_font, true);
+
+    // Animate dim scene screen at start of the scene
+    if (opacity > 0) {
+        cpDrawTextureAlpha(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, black_bg_texture, opacity);
+        opacity -= 4;
+    } else {
+        cpDrawTextureAlpha(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, black_bg_texture, 0);
+    }
 }
 
 void spreadBalls() {
@@ -306,6 +318,9 @@ void showInGameScene() {
     // Init start score
     score = 0;
 
+    // Init alpha value to animate screen dimming at start
+    opacity = 255;
+
     animate_tick = 0;
 
     for (int level = 1; level <= 2; level++) {
@@ -349,10 +364,11 @@ void showInGameScene() {
                     quit = true;
                     return;
                 }
-                // Exit when user released ESC key
                 if (event.type == KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
-                    quit = true;
-                    return;
+                    showPauseMenuScene();
+                    if (quit || scene != InGame)
+                        return;
+                    break;
                 }
                 // Start the game (release ball) when user press left click
                 if (!is_game_start && event.type == SDL_MOUSEBUTTONDOWN &&

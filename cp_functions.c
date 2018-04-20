@@ -146,12 +146,12 @@ int cbPollEvent(Event *event)
    return SDL_PollEvent(event);
 }
 
-void cpDrawTextureRGB(int r, int g, int b,
+void cpDrawTextureRGBA(int r, int g, int b, int a,
    int x, int y, int width, int height, Texture texture)
 {
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, texture->tex_id);
-   glColor4ub(r, g, b, 255);
+   glColor4ub(r, g, b, a);
    glBegin(GL_QUADS);
       glTexCoord2d(0, 0); glVertex2f(x, y);
       glTexCoord2d(1, 0); glVertex2f(x + width, y);
@@ -163,7 +163,12 @@ void cpDrawTextureRGB(int r, int g, int b,
 
 void cpDrawTexture(int x, int y, int width, int height, Texture texture)
 {
-    cpDrawTextureRGB(255, 255, 255, x, y, width, height, texture);
+    cpDrawTextureRGBA(255, 255, 255, 255, x, y, width, height, texture);
+}
+
+void cpDrawTextureAlpha(int x, int y, int width, int height, Texture texture, int a)
+{
+    cpDrawTextureRGBA(255, 255, 255, a, x, y, width, height, texture);
 }
 
 void cpDrawText(int r, int g, int b, int a,

@@ -10,7 +10,7 @@ Font rsu_20_font, rsu_24_font, rsu_26_font, rsu_30_font;
 Music background_music;
 
 // Main Menu
-Texture main_menu_bg_texture;
+Texture main_menu_bg_texture, black_bg_texture;
 Texture play_button_texture, play_button_hover_texture, play_button_pressed_texture;
 Texture highscore_button_texture, highscore_button_hover_texture, highscore_button_pressed_texture;
 Texture quit_button_texture, quit_button_hover_texture, quit_button_pressed_texture;
@@ -21,6 +21,11 @@ Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
 Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture, item_brick_texture;
 Texture orange_brick_texture, red_brick_texture, yellow_brick_texture, barrier_brick_texture;
 Texture missile_texture, missiles_left_icon_texture;
+
+// Pause Menu
+Texture pause_menu_bg_texture;
+Texture resume_button_texture, resume_button_hover_texture, resume_button_pressed_texture;
+Texture back_button_texture, back_button_hover_texture, back_button_pressed_texture;
 
 // Game Over
 Texture game_over_overlay_texture, all_lv_clear_overlay_texture;
@@ -97,6 +102,7 @@ void loadResources() {
     // In-game
     in_game_bg_texture = loadTexture("textures/in_game_bg.png");
     in_game_frame_texture = loadTexture("textures/in_game_frame.png");
+    black_bg_texture = loadTexture("textures/black_bg.png");
 
     paddle_texture = loadTexture("textures/paddle.png");
     ball_texture = loadTexture("textures/ball.png");
@@ -112,6 +118,18 @@ void loadResources() {
 
     missile_texture = loadTexture("textures/missile.png");
     missiles_left_icon_texture = loadTexture("textures/missiles_left_icon.png");
+
+    // Pause Menu
+    pause_menu_bg_texture = loadTexture("textures/pause_menu_overlay.png");
+
+    resume_button_texture = loadTexture("textures/resume_btn.png");
+    resume_button_hover_texture = loadTexture("textures/resume_btn_hover.png");
+    resume_button_pressed_texture = loadTexture("textures/resume_btn_pressed.png");
+
+    back_button_texture = loadTexture("textures/back_btn.png");
+    back_button_hover_texture = loadTexture("textures/back_btn_hover.png");
+    back_button_pressed_texture = loadTexture("textures/back_btn_pressed.png");
+
 
     // Game Over
     game_over_overlay_texture = loadTexture("textures/game_over_overlay.png");

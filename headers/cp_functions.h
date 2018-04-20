@@ -44,8 +44,9 @@ void cpCleanUp();
 void cpSwapBuffers();
 void cpDelay(int millisecond);
 int cbPollEvent(Event *event);
-void cpDrawTextureRGB(int r, int g, int b, int x, int y, int width, int height, Texture texture);
+void cpDrawTextureRGBA(int r, int g, int b, int a, int x, int y, int width, int height, Texture texture);
 void cpDrawTexture(int x, int y, int width, int height, Texture texture);
+void cpDrawTextureAlpha(int x, int y, int width, int height, Texture texture, int a);
 void cpDrawText(int r, int g, int b, int a,
    int x, int y, const char *text, Font font, int center);
 void cpClearScreen();

@@ -1,13 +1,23 @@
-#include <iostream>
 #include "headers/global.h"
 #include "headers/button.h"
 
-extern Texture main_menu_bg_texture;
+extern Texture main_menu_bg_texture, black_bg_texture;
 extern Texture play_button_texture, play_button_hover_texture, play_button_pressed_texture;
 extern Texture highscore_button_texture, highscore_button_hover_texture, highscore_button_pressed_texture;
 extern Texture quit_button_texture, quit_button_hover_texture, quit_button_pressed_texture;
 extern GameScene scene;
 extern bool quit;
+
+void fadeOutScene() {
+    int opacity = 0;
+    while (opacity < 80) {
+        // Animate dimming screen
+        cpDrawTextureAlpha(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, black_bg_texture, opacity);
+        cpSwapBuffers();
+        opacity += 2;
+        cpDelay(10);
+    }
+}
 
 void showMainMenuScene() {
     Event event;
@@ -55,6 +65,7 @@ void showMainMenuScene() {
             if (event.type == SDL_MOUSEBUTTONUP) {
                 if (play_btn.isHover()) {
                     scene = InGame;
+                    fadeOutScene();
                     return;
                 }
                 if (highscore_btn.isHover()) {
