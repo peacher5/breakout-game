@@ -69,7 +69,8 @@ void showMainMenuScene() {
                     return;
                 }
                 if (highscore_btn.isHover()) {
-                    break;
+                    scene = HighScore;
+                    return;
                 }
                 if (quit_btn.isHover()) {
                     quit = true;

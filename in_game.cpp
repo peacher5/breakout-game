@@ -317,6 +317,7 @@ void showInGameScene() {
 
     // Init start score
     score = 0;
+    animate_score = 0;
 
     // Init alpha value to animate screen dimming at start
     opacity = 255;

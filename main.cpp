@@ -4,6 +4,7 @@
 #include "headers/main_menu.h"
 #include "headers/in_game.h"
 #include "headers/game_over.h"
+#include "headers/high_score.h"
 
 // Global shared resources
 Font rsu_20_font, rsu_24_font, rsu_26_font, rsu_30_font;
@@ -29,6 +30,9 @@ Texture back_button_texture, back_button_hover_texture, back_button_pressed_text
 
 // Game Over
 Texture game_over_overlay_texture, all_lv_clear_overlay_texture;
+
+// High Score
+Texture high_score_bg_texture;
 
 GameScene scene;
 bool quit;
@@ -91,9 +95,9 @@ void loadResources() {
     play_button_hover_texture = loadTexture("textures/play_btn_hover.png");
     play_button_pressed_texture = loadTexture("textures/play_btn_pressed.png");
 
-    highscore_button_texture = loadTexture("textures/highscore_btn.png");
-    highscore_button_hover_texture = loadTexture("textures/highscore_btn_hover.png");
-    highscore_button_pressed_texture = loadTexture("textures/highscore_btn_pressed.png");
+    highscore_button_texture = loadTexture("textures/high_score_btn.png");
+    highscore_button_hover_texture = loadTexture("textures/high_score_btn_hover.png");
+    highscore_button_pressed_texture = loadTexture("textures/high_score_btn_pressed.png");
 
     quit_button_texture = loadTexture("textures/quit_btn.png");
     quit_button_hover_texture = loadTexture("textures/quit_btn_hover.png");
@@ -130,10 +134,12 @@ void loadResources() {
     back_button_hover_texture = loadTexture("textures/back_btn_hover.png");
     back_button_pressed_texture = loadTexture("textures/back_btn_pressed.png");
 
-
     // Game Over
     game_over_overlay_texture = loadTexture("textures/game_over_overlay.png");
     all_lv_clear_overlay_texture = loadTexture("textures/all_lv_clear_overlay.png");
+
+    // High Score
+    high_score_bg_texture = loadTexture("textures/high_score_bg.png");
 }
 
 int main(int argc, char *args[]) {
@@ -166,6 +172,7 @@ int main(int argc, char *args[]) {
                 showGameOverScene();
                 break;
             case HighScore:
+                showHighScoreScene();
                 break;
         }
     }
