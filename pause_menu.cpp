@@ -1,8 +1,9 @@
 #include "headers/global.h"
 #include "headers/in_game.h"
 #include "headers/button.h"
-#include "headers/mouse.h"
+#include "headers/main_menu.h"
 
+extern Sound button_pressed_sound;
 extern Texture pause_menu_bg_texture;
 extern Texture resume_button_texture, resume_button_hover_texture, resume_button_pressed_texture;
 extern Texture back_button_texture, back_button_hover_texture, back_button_pressed_texture;
@@ -29,8 +30,6 @@ void showPauseMenuScene() {
     quit_btn.setHoverTexture(quit_button_hover_texture);
     quit_btn.setPressedTexture(quit_button_pressed_texture);
 
-    setMouseVisible(true);
-
     while (true) {
         cpClearScreen();
 
@@ -55,20 +54,22 @@ void showPauseMenuScene() {
                 return;
             }
             if (event.type == KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
-                setMouseVisible(false);
                 return;
             }
             if (event.type == SDL_MOUSEBUTTONUP) {
                 if (resume_btn.isHover()) {
-                    setMouseVisible(false);
+                    cpPlaySound(button_pressed_sound);
                     return;
                 }
                 if (back_btn.isHover()) {
                     scene = MainMenu;
+                    cpPlaySound(button_pressed_sound);
                     return;
                 }
                 if (quit_btn.isHover()) {
                     quit = true;
+                    cpPlaySound(button_pressed_sound);
+                    fadeOutScene();
                     return;
                 }
             }

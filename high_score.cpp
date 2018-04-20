@@ -4,6 +4,7 @@
 #include "headers/scoreboard.h"
 
 extern Font rsu_20_font;
+extern Sound button_pressed_sound;
 extern Texture high_score_bg_texture;
 extern Texture back_button_texture, back_button_hover_texture, back_button_pressed_texture;
 extern GameScene scene;
@@ -57,6 +58,7 @@ void showHighScoreScene() {
             if (event.type == SDL_MOUSEBUTTONUP) {
                 if (back_btn.isHover()) {
                     scene = MainMenu;
+                    cpPlaySound(button_pressed_sound);
                     return;
                 }
             }

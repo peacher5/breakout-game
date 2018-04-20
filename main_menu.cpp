@@ -1,6 +1,7 @@
 #include "headers/global.h"
 #include "headers/button.h"
 
+extern Sound button_pressed_sound;
 extern Texture main_menu_bg_texture, black_bg_texture;
 extern Texture play_button_texture, play_button_hover_texture, play_button_pressed_texture;
 extern Texture highscore_button_texture, highscore_button_hover_texture, highscore_button_pressed_texture;
@@ -66,15 +67,18 @@ void showMainMenuScene() {
             if (event.type == SDL_MOUSEBUTTONUP) {
                 if (play_btn.isHover()) {
                     scene = InGame;
+                    cpPlaySound(button_pressed_sound);
                     fadeOutScene();
                     return;
                 }
                 if (highscore_btn.isHover()) {
                     scene = HighScore;
+                    cpPlaySound(button_pressed_sound);
                     return;
                 }
                 if (quit_btn.isHover()) {
                     quit = true;
+                    cpPlaySound(button_pressed_sound);
                     fadeOutScene();
                     return;
                 }

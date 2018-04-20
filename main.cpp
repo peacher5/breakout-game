@@ -11,6 +11,7 @@ Font rsu_20_font, rsu_24_font, rsu_26_font, rsu_30_font;
 Music background_music;
 
 // Main Menu
+Sound button_pressed_sound;
 Texture main_menu_bg_texture, black_bg_texture;
 Texture play_button_texture, play_button_hover_texture, play_button_pressed_texture;
 Texture highscore_button_texture, highscore_button_hover_texture, highscore_button_pressed_texture;
@@ -88,6 +89,7 @@ void loadResources() {
     hit_top_sound = loadSound("sounds/hitTop.wav");
     end_sound = loadSound("sounds/theEnd.wav");
     missile_sound = loadSound("sounds/missile.wav");
+    button_pressed_sound = loadSound("sounds/btn_pressed.wav");
 
     // Main Menu
     main_menu_bg_texture = loadTexture("textures/main_menu_bg.png");

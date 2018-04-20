@@ -3,8 +3,10 @@
 #include "headers/in_game.h"
 #include "headers/button.h"
 #include "headers/scoreboard.h"
+#include "headers/main_menu.h"
 
 extern Font rsu_20_font, rsu_24_font;
+extern Sound button_pressed_sound;
 extern Texture game_over_overlay_texture, all_lv_clear_overlay_texture;
 extern Texture play_again_button_texture, play_again_button_hover_texture, play_again_button_pressed_texture;
 extern Texture back_button_texture, back_button_hover_texture, back_button_pressed_texture;
@@ -38,8 +40,6 @@ void showGameOverScene() {
     quit_btn.setPressedTexture(quit_button_pressed_texture);
 
     while (true) {
-        // Show mouse cursor
-        setMouseVisible(true);
 
         cpClearScreen();
 
@@ -91,14 +91,18 @@ void showGameOverScene() {
             if (event.type == SDL_MOUSEBUTTONUP) {
                 if (play_again_btn.isHover()) {
                     scene = InGame;
+                    cpPlaySound(button_pressed_sound);
                     return;
                 }
                 if (back_btn.isHover()) {
                     scene = MainMenu;
+                    cpPlaySound(button_pressed_sound);
                     return;
                 }
                 if (quit_btn.isHover()) {
                     quit = true;
+                    cpPlaySound(button_pressed_sound);
+                    fadeOutScene();
                     return;
                 }
             }

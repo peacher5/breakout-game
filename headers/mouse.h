@@ -3,12 +3,6 @@
 
 #include "cp_functions.h"
 
-void setMouseVisible(bool toggle);
-
-void setMouseX(int mouse_x);
-
-int getMouseX();
-
 void getMousePosition(int* mouse_x, int* mouse_y);
 
 bool isLeftClickPressed();
