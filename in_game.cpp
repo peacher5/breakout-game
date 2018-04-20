@@ -37,7 +37,7 @@ int score, animate_score, animate_tick;
 // Number of balls & missiles left
 int balls_left, missiles_left;
 // Start ball speed & start angle
-float ball_vel = 8, bounce_angle;
+float ball_vel = 7, bounce_angle;
 // Count breakable bricks & barrier bricks
 int n_bricks, n_barrier_bricks;
 // Count number of breakable bricks that's destroyed
@@ -273,10 +273,14 @@ void handleBrickEvent(Brick &brick) {
 void showInGameScene() {
     // For store event from PollEvent function
     Event event;
+    // Regulating Frame rate
+    const int FPS = 60;
+    // Store tick time at start of the frame
+    int start_frame_tick;
     // Set max ball angle when collide w/ paddle = 70 degee angle
     const float MAX_BOUNCE_ANGLE = 7 * M_PI / 18;
     // Default paddle movement speed
-    const int PADDLE_SPEED = 10;
+    const int PADDLE_SPEED = 9;
     // Temp vars for calculate angle
     float relative_intersect, normalized_relative_intersect;
     // For spacebar key hold detect
@@ -352,6 +356,8 @@ void showInGameScene() {
         n_breaks = 0;
 
         while (n_breaks < n_bricks) {
+            start_frame_tick = SDL_GetTicks();
+
             cpClearScreen();
             drawInGameTexture();
 
@@ -383,7 +389,7 @@ void showInGameScene() {
                     break;
                 }
                 if (is_game_start) {
-                    // R Key Test
+                    // R Key to Spread balls Cheat
                     if (is_game_start && event.type == KEYDOWN && event.key.keysym.sym == SDLK_r) {
                         spreadBalls();
                         break;
@@ -634,7 +640,9 @@ void showInGameScene() {
                 balls[0].setVelY(-ball_vel * cos(bounce_angle));
             }
 
-            cpDelay(10);
+            // Regulating frame rate (Prevent frame run too fast on some PC)
+            if (1000 / FPS > SDL_GetTicks() - start_frame_tick)
+                cpDelay(1000 / FPS - (SDL_GetTicks() - start_frame_tick));
         }
     }
     // If the last level is cleared
