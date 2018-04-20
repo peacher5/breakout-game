@@ -30,6 +30,7 @@ Texture back_button_texture, back_button_hover_texture, back_button_pressed_text
 
 // Game Over
 Texture game_over_overlay_texture, all_lv_clear_overlay_texture;
+Texture play_again_button_texture, play_again_button_hover_texture, play_again_button_pressed_texture;
 
 // High Score
 Texture high_score_bg_texture;
@@ -137,6 +138,10 @@ void loadResources() {
     // Game Over
     game_over_overlay_texture = loadTexture("textures/game_over_overlay.png");
     all_lv_clear_overlay_texture = loadTexture("textures/all_lv_clear_overlay.png");
+
+    play_again_button_texture = loadTexture("textures/play_again_btn.png");
+    play_again_button_hover_texture = loadTexture("textures/play_again_btn_hover.png");
+    play_again_button_pressed_texture = loadTexture("textures/play_again_btn_pressed.png");
 
     // High Score
     high_score_bg_texture = loadTexture("textures/high_score_bg.png");

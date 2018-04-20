@@ -60,6 +60,7 @@ void showMainMenuScene() {
             }
             if (event.type == KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
                 quit = true;
+                fadeOutScene();
                 return;
             }
             if (event.type == SDL_MOUSEBUTTONUP) {
@@ -74,6 +75,7 @@ void showMainMenuScene() {
                 }
                 if (quit_btn.isHover()) {
                     quit = true;
+                    fadeOutScene();
                     return;
                 }
             }

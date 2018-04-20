@@ -1,10 +1,14 @@
 #include <string>
 #include "headers/global.h"
 #include "headers/in_game.h"
+#include "headers/button.h"
 #include "headers/scoreboard.h"
 
 extern Font rsu_20_font, rsu_24_font;
 extern Texture game_over_overlay_texture, all_lv_clear_overlay_texture;
+extern Texture play_again_button_texture, play_again_button_hover_texture, play_again_button_pressed_texture;
+extern Texture back_button_texture, back_button_hover_texture, back_button_pressed_texture;
+extern Texture quit_button_texture, quit_button_hover_texture, quit_button_pressed_texture;
 extern GameScene scene;
 extern bool quit;
 
@@ -16,6 +20,22 @@ void showGameOverScene() {
     ScoreBoard scoreboard;
 
     scoreboard.write(score);
+
+    Button play_again_btn(108, 547, 168, 51);
+    Button back_btn(316, 547, 168, 51);
+    Button quit_btn(524, 547, 168, 51);
+
+    play_again_btn.setTexture(play_again_button_texture);
+    play_again_btn.setHoverTexture(play_again_button_hover_texture);
+    play_again_btn.setPressedTexture(play_again_button_pressed_texture);
+
+    back_btn.setTexture(back_button_texture);
+    back_btn.setHoverTexture(back_button_hover_texture);
+    back_btn.setPressedTexture(back_button_pressed_texture);
+
+    quit_btn.setTexture(quit_button_texture);
+    quit_btn.setHoverTexture(quit_button_hover_texture);
+    quit_btn.setPressedTexture(quit_button_pressed_texture);
 
     while (true) {
         // Show mouse cursor
@@ -50,6 +70,11 @@ void showGameOverScene() {
                 scoreboard.getHighScoreByIndex(i).c_str(), rsu_20_font, true);
         }
 
+        // Buttons
+        play_again_btn.drawTexture();
+        back_btn.drawTexture();
+        quit_btn.drawTexture();
+
         // Update Screen
         cpSwapBuffers();
 
@@ -59,15 +84,23 @@ void showGameOverScene() {
                 quit = true;
                 return;
             }
-            // Exit when user released ESC key
             if (event.type == KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
-                quit = true;
+                scene = MainMenu;
                 return;
             }
-            // When user press left click (TEST)
-            if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-                scene = InGame;
-                return;
+            if (event.type == SDL_MOUSEBUTTONUP) {
+                if (play_again_btn.isHover()) {
+                    scene = InGame;
+                    return;
+                }
+                if (back_btn.isHover()) {
+                    scene = MainMenu;
+                    return;
+                }
+                if (quit_btn.isHover()) {
+                    quit = true;
+                    return;
+                }
             }
         }
 
