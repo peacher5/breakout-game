@@ -37,7 +37,7 @@ int score, animate_score, animate_tick;
 // Number of balls & missiles left
 int balls_left, missiles_left;
 // Start ball speed & start angle
-float ball_vel = 9, bounce_angle;
+float ball_vel = 8, bounce_angle;
 // Count breakable bricks & barrier bricks
 int n_bricks, n_barrier_bricks;
 // Count number of breakable bricks that's destroyed
@@ -275,27 +275,26 @@ void showInGameScene() {
     Event event;
     // Set max ball angle when collide w/ paddle = 70 degee angle
     const float MAX_BOUNCE_ANGLE = 7 * M_PI / 18;
+    // Default paddle movement speed
+    const int PADDLE_SPEED = 10;
     // Temp vars for calculate angle
     float relative_intersect, normalized_relative_intersect;
-    // For mouse hold detect
-    bool is_mouse_down = false;
+    // For spacebar key hold detect
+    bool is_spacebar_hold_down = false;
     // Missile fire delay
     int missile_tick = 0;
     // Store collision side
     CollisionSide side;
 
-    // Hide mouse cursor
-    setMouseVisible(false);
-
-    // Set mouse x position to center
-    setMouseX(WINDOW_WIDTH / 2);
-
     // Set paddle texture
     paddle.setTexture(paddle_texture);
 
     // Init paddle position
-    paddle.setX(getMouseX() - paddle.getWidth() / 2);
+    paddle.setX(WINDOW_WIDTH / 2 - paddle.getWidth() / 2);
     paddle.setY(WINDOW_HEIGHT - 80);
+
+    // Reset paddle movement
+    paddle.setVelX(0);
 
     // Prevent paddle get out of window (In-game Frame side border width = 9px)
     if (paddle.getX() < 10)
@@ -371,27 +370,41 @@ void showInGameScene() {
                         return;
                     break;
                 }
-                // Start the game (release ball) when user press left click
-                if (!is_game_start && event.type == SDL_MOUSEBUTTONDOWN &&
-                    event.button.button == SDL_BUTTON_LEFT) {
-                    is_game_start = true;
+                // Paddle Control
+                if (event.type == KEYDOWN && event.key.keysym.sym == K_LEFT) {
+                    paddle.setVelX(-PADDLE_SPEED);
+                    break;
+                } else if (event.type == KEYDOWN && event.key.keysym.sym == K_RIGHT) {
+                    paddle.setVelX(PADDLE_SPEED);
+                    break;
+                } else if (event.type == KEYUP &&
+                          (event.key.keysym.sym == K_LEFT || event.key.keysym.sym == K_RIGHT)) {
+                    paddle.setVelX(0);
                     break;
                 }
-                // R Key Test
-                if (is_game_start && event.type == KEYDOWN && event.key.keysym.sym == SDLK_r) {
-                    spreadBalls();
-                    break;
-                }
-                // Left click mouse hold down detect
-                if (event.button.button == SDL_BUTTON_LEFT) {
-                    if (is_game_start && event.type == SDL_MOUSEBUTTONDOWN)
-                        is_mouse_down = true;
-                    else if (event.type == SDL_MOUSEBUTTONUP)
-                        is_mouse_down = false, missile_tick = 10;
+                if (is_game_start) {
+                    // R Key Test
+                    if (is_game_start && event.type == KEYDOWN && event.key.keysym.sym == SDLK_r) {
+                        spreadBalls();
+                        break;
+                    }
+                    // Spacebar key hold down detect
+                    if (event.key.keysym.sym == SDLK_SPACE) {
+                        if (is_game_start && event.type == KEYDOWN)
+                            is_spacebar_hold_down = true;
+                        else if (event.type == KEYUP)
+                            is_spacebar_hold_down = false, missile_tick = 10;
+                    }
+                } else {
+                    // Start the game (release ball) when user press spacebar
+                    if (event.type == KEYDOWN && event.key.keysym.sym == SDLK_SPACE) {
+                        is_game_start = true;
+                        break;
+                    }
                 }
             }
 
-            if (is_game_start && is_mouse_down && missiles_left) {
+            if (is_game_start && is_spacebar_hold_down && missiles_left) {
                 if (missile_tick == 10) {
                     missile_tick = 0;
                     for (int i = 0, amount = 0; i < 30; i++) {
@@ -447,8 +460,8 @@ void showInGameScene() {
                 }
             }
 
-            // Set paddle position related to mouse position
-            paddle.setX(getMouseX() - paddle.getWidth() / 2);
+            // Set paddle position related to left/right key hold
+            paddle.move();
 
             // Prevent paddle get out of window (In-game Frame side border width = 10px)
             if (paddle.getX() < 10)
