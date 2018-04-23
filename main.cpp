@@ -20,8 +20,9 @@ Texture quit_button_texture, quit_button_hover_texture, quit_button_pressed_text
 // In-game
 Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound, missile_sound;
 Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
-Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture, item_brick_texture;
+Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture;
 Texture orange_brick_texture, red_brick_texture, yellow_brick_texture, barrier_brick_texture;
+Texture blue_item_brick_texture, orange_item_brick_texture, red_item_brick_texture, yellow_item_brick_texture;
 Texture missile_texture, missiles_left_icon_texture;
 
 // Pause Menu
@@ -84,10 +85,9 @@ void loadResources() {
 
     // Sound & Music
     background_music = loadMusic("sounds/bgm.ogg");
-    hit_paddle_sound = loadSound("sounds/hitDown.wav");
-    hit_brick_sound = loadSound("sounds/hitUp.wav");
-    hit_top_sound = loadSound("sounds/hitTop.wav");
-    end_sound = loadSound("sounds/theEnd.wav");
+    hit_paddle_sound = loadSound("sounds/hit_paddle.wav");
+    hit_brick_sound = loadSound("sounds/hit_brick.wav");
+    hit_top_sound = loadSound("sounds/hit_top.wav");
     missile_sound = loadSound("sounds/missile.wav");
     button_pressed_sound = loadSound("sounds/btn_pressed.wav");
 
@@ -120,8 +120,11 @@ void loadResources() {
     yellow_brick_texture = loadTexture("textures/yellow_brick.png");
     stone_brick_texture = loadTexture("textures/stone_brick.png");
     crack_stone_brick_texture = loadTexture("textures/crack_stone_brick.png");
-    item_brick_texture = loadTexture("textures/missile_brick.png");
     barrier_brick_texture = loadTexture("textures/barrier_brick.png");
+    blue_item_brick_texture = loadTexture("textures/blue_item_brick.png");
+    orange_item_brick_texture = loadTexture("textures/orange_item_brick.png");
+    red_item_brick_texture = loadTexture("textures/red_item_brick.png");
+    yellow_item_brick_texture = loadTexture("textures/yellow_item_brick.png");
 
     missile_texture = loadTexture("textures/missile.png");
     missiles_left_icon_texture = loadTexture("textures/missiles_left_icon.png");

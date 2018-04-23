@@ -13,8 +13,10 @@ extern Sound hit_paddle_sound, hit_brick_sound, hit_top_sound, end_sound, missil
 extern Texture black_bg_texture;
 extern Texture paddle_texture, ball_texture, in_game_bg_texture, in_game_frame_texture;
 extern Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture, missile_texture;
-extern Texture missiles_left_icon_texture, item_brick_texture, barrier_brick_texture;
+extern Texture missiles_left_icon_texture, barrier_brick_texture;
 extern Texture orange_brick_texture, red_brick_texture, yellow_brick_texture;
+extern Texture blue_item_brick_texture, orange_item_brick_texture;
+extern Texture red_item_brick_texture, yellow_item_brick_texture;
 extern GameScene scene;
 extern bool quit;
 
@@ -37,7 +39,7 @@ int score, animate_score, animate_tick;
 // Number of balls & missiles left
 int balls_left, missiles_left;
 // Start ball speed & start angle
-float ball_vel = 7, bounce_angle;
+float ball_vel, bounce_angle;
 // Count breakable bricks & barrier bricks
 int n_bricks, n_barrier_bricks;
 // Count number of breakable bricks that's destroyed
@@ -90,15 +92,21 @@ void initBricksLevel(int level) {
             bricks[i].setPos(x, y);
             bricks[i].setSize(50, 25);
             if (i == 7) {
-                bricks[i].setTexture(item_brick_texture);
+                bricks[i].setTexture(blue_item_brick_texture);
                 bricks[i].setCrackTexture(NULL);
                 bricks[i].setBrickType(BallsSpread);
                 bricks[i].setDurability(1);
                 bricks[i].setScore(10);
             } else if (i == 36) {
-                bricks[i].setTexture(item_brick_texture);
+                bricks[i].setTexture(blue_item_brick_texture);
                 bricks[i].setCrackTexture(NULL);
                 bricks[i].setBrickType(MissileAmmo);
+                bricks[i].setDurability(1);
+                bricks[i].setScore(10);
+            } else if (i == 81) {
+                bricks[i].setTexture(blue_item_brick_texture);
+                bricks[i].setCrackTexture(NULL);
+                bricks[i].setBrickType(BallSpeedIncrease);
                 bricks[i].setDurability(1);
                 bricks[i].setScore(10);
             } else if (i % 5) {
@@ -124,16 +132,36 @@ void initBricksLevel(int level) {
         for (int i = 0, x = 100, y = 110, line = 1; i < n_bricks; i++) {
             bricks[i].setPos(x, y);
             bricks[i].setSize(50, 25);
-            if (line == 1 || line == 5)
-                bricks[i].setTexture(yellow_brick_texture);
-            else if (line == 2 || line == 4 || line == 6 || line == 8)
-                bricks[i].setTexture(orange_brick_texture);
-            else
-                bricks[i].setTexture(red_brick_texture);
-            bricks[i].setCrackTexture(NULL);
-            bricks[i].setBrickType(NoEffect);
-            bricks[i].setDurability(1);
-            bricks[i].setScore(5);
+            if (i == 1) {
+                bricks[i].setTexture(yellow_item_brick_texture);
+                bricks[i].setCrackTexture(NULL);
+                bricks[i].setBrickType(BallSpeedIncrease);
+                bricks[i].setDurability(1);
+                bricks[i].setScore(10);
+            } else if (i == 24) {
+                bricks[i].setTexture(yellow_item_brick_texture);
+                bricks[i].setCrackTexture(NULL);
+                bricks[i].setBrickType(BallsSpread);
+                bricks[i].setDurability(1);
+                bricks[i].setScore(10);
+            } else if (i == 39) {
+                bricks[i].setTexture(red_item_brick_texture);
+                bricks[i].setCrackTexture(NULL);
+                bricks[i].setBrickType(MissileAmmo);
+                bricks[i].setDurability(1);
+                bricks[i].setScore(10);
+            } else {
+                if (line == 1 || line == 5)
+                    bricks[i].setTexture(yellow_brick_texture);
+                else if (line == 2 || line == 4 || line == 6 || line == 8)
+                    bricks[i].setTexture(orange_brick_texture);
+                else
+                    bricks[i].setTexture(red_brick_texture);
+                bricks[i].setCrackTexture(NULL);
+                bricks[i].setBrickType(NoEffect);
+                bricks[i].setDurability(1);
+                bricks[i].setScore(5);
+            }
             if (x >= WINDOW_WIDTH - 200)
                 line++, x = line % 2 == 0 ? 150 : 100, y += 25;
             else
@@ -259,11 +287,17 @@ void handleBrickEvent(Brick &brick) {
         } else if (brick.getBrickType() == BallsSpread) {
             spreadBalls();
         } else if (brick.getBrickType() == BallSpeedIncrease) {
-            ball_vel += 5;
+            ball_vel += 3;
             for (int i = 0; i < MAX_BALLS; i++) {
                 if (balls[i].isOnScreen()) {
-                    balls[i].setVelX(ball_vel * sin(bounce_angle));
-                    balls[i].setVelY(ball_vel * cos(bounce_angle));
+                    if (balls[i].getVelX() < 0)
+                        balls[i].setVelX(balls[i].getVelX() - 3);
+                    else
+                        balls[i].setVelX(balls[i].getVelX() + 3);
+                    if (balls[i].getVelX() < 0)
+                        balls[i].setVelY(balls[i].getVelY() - 3);
+                    else
+                        balls[i].setVelY(balls[i].getVelY() + 3);
                 }
             }
         }
@@ -280,7 +314,7 @@ void showInGameScene() {
     // Set max ball angle when collide w/ paddle = 70 degee angle
     const float MAX_BOUNCE_ANGLE = 7 * M_PI / 18;
     // Default paddle movement speed
-    const int PADDLE_SPEED = 9;
+    const int PADDLE_SPEED = 10;
     // Temp vars for calculate angle
     float relative_intersect, normalized_relative_intersect;
     // For spacebar key hold detect
@@ -335,6 +369,9 @@ void showInGameScene() {
         // Reset game status (ball will stick w/ paddle)
         is_game_start = false;
 
+        // Init/Reset ball speed
+        ball_vel = 8;
+
         // Reset balls velocity in x/y pos (0 degree = go up straight)
         bounce_angle = 0;
         for (int i = 0; i < MAX_BALLS; i++) {
@@ -374,6 +411,8 @@ void showInGameScene() {
                     showPauseMenuScene();
                     if (quit || scene != InGame)
                         return;
+                    // Reset paddle movement
+                    paddle.setVelX(0);
                     break;
                 }
                 // Paddle Control
@@ -634,7 +673,7 @@ void showInGameScene() {
                 balls[0].setX(paddle.getX() + paddle.getWidth() / 2 - balls[0].getWidth() / 2);
                 balls[0].setY(paddle.getY() - balls[0].getHeight() - 1);
                 // Reset ball velocity in x/y pos
-                ball_vel = 9;
+                ball_vel = 8;
                 bounce_angle = 0;
                 balls[0].setVelX(ball_vel * sin(bounce_angle));
                 balls[0].setVelY(-ball_vel * cos(bounce_angle));
