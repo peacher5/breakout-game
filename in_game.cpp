@@ -178,8 +178,6 @@ void initBricksLevel(int level) {
             if (i == 3)
                 x += 150;
         }
-    } else if (level == 3) {
-        // TODO: Design the last lv.
     }
 }
 
@@ -236,6 +234,10 @@ void drawInGameTexture() {
 
     // Balls left text
     cpDrawText(255, 255, 255, 216, 758, 43, to_string(balls_left).c_str(), rsu_30_font, true);
+
+    // Release ball hint text
+    if (!is_game_start)
+        cpDrawText(255, 255, 255, 230, WINDOW_WIDTH / 2, 666, "กด Spacebar เพื่อปล่อยลูก", rsu_24_font, true);    
 
     // Animate dim scene screen at start of the scene
     if (opacity > 0) {
@@ -294,7 +296,7 @@ void handleBrickEvent(Brick &brick) {
                         balls[i].setVelX(balls[i].getVelX() - 3);
                     else
                         balls[i].setVelX(balls[i].getVelX() + 3);
-                    if (balls[i].getVelX() < 0)
+                    if (balls[i].getVelY() < 0)
                         balls[i].setVelY(balls[i].getVelY() - 3);
                     else
                         balls[i].setVelY(balls[i].getVelY() + 3);
