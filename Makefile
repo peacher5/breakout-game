@@ -5,7 +5,7 @@ CFLAGS =
 LDFLAGS = -L/usr/local/lib -lSDL -lSDLmain -lSDL_ttf -lSDL_image -lSDL_mixer -framework Cocoa -framework OpenGL
 
 OBJECTS = cp_functions.o main.o mouse.o object.o ball.o brick.o in_game.o game_over.o scoreboard.o missile.o\
-          main_menu.o button.o pause_menu.o high_score.o
+          main_menu.o button.o pause_menu.o high_score.o barrier_brick.o item_brick.o stone_brick.o
 
 all: Breakout
 
@@ -23,6 +23,15 @@ ball.o: ball.cpp
 
 brick.o: brick.cpp
 	$(CXX) $(CFLAGS) -c brick.cpp
+
+barrier_brick.o: barrier_brick.cpp
+	$(CXX) $(CFLAGS) -c barrier_brick.cpp
+
+item_brick.o: item_brick.cpp
+	$(CXX) $(CFLAGS) -c item_brick.cpp
+
+stone_brick.o: stone_brick.cpp
+	$(CXX) $(CFLAGS) -c stone_brick.cpp
 
 button.o: button.cpp
 	$(CXX) $(CFLAGS) -c button.cpp

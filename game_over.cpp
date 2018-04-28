@@ -82,27 +82,32 @@ void showGameOverScene() {
         while (cbPollEvent(&event)) {
             if (event.type == QUIT) {
                 quit = true;
+                deleteBricks();
                 return;
             }
             if (event.type == KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
                 scene = MainMenu;
+                deleteBricks();
                 return;
             }
             if (event.type == SDL_MOUSEBUTTONUP) {
                 if (play_again_btn.isHover()) {
                     scene = InGame;
                     cpPlaySound(button_pressed_sound);
+                    deleteBricks();
                     return;
                 }
                 if (back_btn.isHover()) {
                     scene = MainMenu;
                     cpPlaySound(button_pressed_sound);
+                    deleteBricks();
                     return;
                 }
                 if (quit_btn.isHover()) {
                     quit = true;
                     cpPlaySound(button_pressed_sound);
                     fadeOutScene();
+                    deleteBricks();
                     return;
                 }
             }

@@ -5,6 +5,9 @@
 #include "headers/object.h"
 #include "headers/ball.h"
 #include "headers/brick.h"
+#include "headers/barrier_brick.h"
+#include "headers/item_brick.h"
+#include "headers/stone_brick.h"
 #include "headers/missile.h"
 
 // Global shared resources from main
@@ -23,12 +26,12 @@ extern bool quit;
 // Global vars for In-game Scene
 // Max object on screen
 const int MAX_BALLS = 50;
+const int MAX_BRICKS = 120;
 const int MAX_MISSILES = 30;
 
 Object paddle(124, 18);
 Ball balls[MAX_BALLS];
-Brick bricks[100];
-Brick barrier_bricks[20];
+Brick **bricks;
 Missile missiles[MAX_MISSILES];
 
 typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
@@ -84,44 +87,54 @@ CollisionSide collide(Object a, Object b) {
     return NoCollide;
 }
 
+void deleteBricks() {
+    for (int i = 0; i < n_bricks + n_barrier_bricks; i++)
+        delete bricks[i];
+    delete bricks;
+}
+
 void initBricksLevel(int level) {
+    BarrierBrick *barrier_brick;
+    ItemBrick *item_brick;
+    StoneBrick *stone_brick;
+
     if (level == 1) {
         n_bricks = 96;
         n_barrier_bricks = 0;
         for (int i = 0, x = 100, y = 120; i < n_bricks; i++) {
-            bricks[i].setPos(x, y);
-            bricks[i].setSize(50, 25);
             if (i == 7) {
-                bricks[i].setTexture(blue_item_brick_texture);
-                bricks[i].setCrackTexture(NULL);
-                bricks[i].setBrickType(BallsSpread);
-                bricks[i].setDurability(1);
-                bricks[i].setScore(10);
+                item_brick = new ItemBrick();
+                item_brick->setTexture(blue_item_brick_texture);
+                item_brick->setItemType(BallsSpread);
+                item_brick->setScore(10);
+                bricks[i] = item_brick;
             } else if (i == 36) {
-                bricks[i].setTexture(blue_item_brick_texture);
-                bricks[i].setCrackTexture(NULL);
-                bricks[i].setBrickType(MissileAmmo);
-                bricks[i].setDurability(1);
-                bricks[i].setScore(10);
+                item_brick = new ItemBrick();
+                item_brick->setTexture(blue_item_brick_texture);
+                item_brick->setItemType(MissileAmmo);
+                item_brick->setScore(10);
+                bricks[i] = item_brick;
             } else if (i == 81) {
-                bricks[i].setTexture(blue_item_brick_texture);
-                bricks[i].setCrackTexture(NULL);
-                bricks[i].setBrickType(BallSpeedIncrease);
-                bricks[i].setDurability(1);
-                bricks[i].setScore(10);
+                item_brick = new ItemBrick();
+                item_brick->setTexture(blue_item_brick_texture);
+                item_brick->setItemType(BallSpeedIncrease);
+                item_brick->setScore(10);
+                bricks[i] = item_brick;
             } else if (i % 5) {
-                bricks[i].setTexture(blue_brick_texture);
-                bricks[i].setCrackTexture(NULL);
-                bricks[i].setBrickType(NoEffect);
-                bricks[i].setDurability(1);
-                bricks[i].setScore(5);
+                bricks[i] = new Brick();
+                bricks[i]->setTexture(blue_brick_texture);
+                bricks[i]->setScore(5);
             } else {
-                bricks[i].setTexture(stone_brick_texture);
-                bricks[i].setCrackTexture(crack_stone_brick_texture);
-                bricks[i].setBrickType(NoEffect);
-                bricks[i].setDurability(2);
-                bricks[i].setScore(20);
+                stone_brick = new StoneBrick();
+                stone_brick->setTexture(stone_brick_texture);
+                stone_brick->setCrackTexture(crack_stone_brick_texture);
+                stone_brick->setScore(20);
+                bricks[i] = stone_brick;
             }
+
+            bricks[i]->setPos(x, y);
+            bricks[i]->setSize(50, 25);
+
             if (x > WINDOW_WIDTH - 200)
                 x = 100, y += 25;
             else
@@ -130,52 +143,52 @@ void initBricksLevel(int level) {
     } else if (level == 2) {
         n_bricks = 48;
         for (int i = 0, x = 100, y = 110, line = 1; i < n_bricks; i++) {
-            bricks[i].setPos(x, y);
-            bricks[i].setSize(50, 25);
             if (i == 1) {
-                bricks[i].setTexture(yellow_item_brick_texture);
-                bricks[i].setCrackTexture(NULL);
-                bricks[i].setBrickType(BallSpeedIncrease);
-                bricks[i].setDurability(1);
-                bricks[i].setScore(10);
+                item_brick = new ItemBrick();
+                item_brick->setTexture(yellow_item_brick_texture);
+                item_brick->setItemType(BallSpeedIncrease);
+                item_brick->setScore(10);
+                bricks[i] = item_brick;
             } else if (i == 24) {
-                bricks[i].setTexture(yellow_item_brick_texture);
-                bricks[i].setCrackTexture(NULL);
-                bricks[i].setBrickType(BallsSpread);
-                bricks[i].setDurability(1);
-                bricks[i].setScore(10);
+                item_brick = new ItemBrick();
+                item_brick->setTexture(yellow_item_brick_texture);
+                item_brick->setItemType(BallsSpread);
+                item_brick->setScore(10);
+                bricks[i] = item_brick;
             } else if (i == 39) {
-                bricks[i].setTexture(red_item_brick_texture);
-                bricks[i].setCrackTexture(NULL);
-                bricks[i].setBrickType(MissileAmmo);
-                bricks[i].setDurability(1);
-                bricks[i].setScore(10);
+                item_brick = new ItemBrick();
+                item_brick->setTexture(red_item_brick_texture);
+                item_brick->setItemType(MissileAmmo);
+                item_brick->setScore(10);
+                bricks[i] = item_brick;
             } else {
+                bricks[i] = new Brick();
                 if (line == 1 || line == 5)
-                    bricks[i].setTexture(yellow_brick_texture);
+                    bricks[i]->setTexture(yellow_brick_texture);
                 else if (line == 2 || line == 4 || line == 6 || line == 8)
-                    bricks[i].setTexture(orange_brick_texture);
+                    bricks[i]->setTexture(orange_brick_texture);
                 else
-                    bricks[i].setTexture(red_brick_texture);
-                bricks[i].setCrackTexture(NULL);
-                bricks[i].setBrickType(NoEffect);
-                bricks[i].setDurability(1);
-                bricks[i].setScore(5);
+                    bricks[i]->setTexture(red_brick_texture);
+                bricks[i]->setScore(5);
             }
+
+            bricks[i]->setPos(x, y);
+            bricks[i]->setSize(50, 25);
+
             if (x >= WINDOW_WIDTH - 200)
                 line++, x = line % 2 == 0 ? 150 : 100, y += 25;
             else
                 x += 100;
         }
         n_barrier_bricks = 8;
-        for (int i = 0, x = 50, y = 360; i < n_barrier_bricks; i++, x += 50) {
-            barrier_bricks[i].setPos(x, y);
-            barrier_bricks[i].setSize(50, 25);
-            barrier_bricks[i].setTexture(barrier_brick_texture);
-            barrier_bricks[i].setBrickType(Barrier);
-            if ((i + 1) % 2 == 0)
+        for (int i = n_bricks, x = 50, y = 360; i < n_bricks + n_barrier_bricks; i++, x += 50) {
+            bricks[i] = new BarrierBrick();
+            bricks[i]->setPos(x, y);
+            bricks[i]->setSize(50, 25);
+            bricks[i]->setTexture(barrier_brick_texture);
+            if (((i - n_bricks) + 1) % 2 == 0)
                 x += 50;
-            if (i == 3)
+            if ((i - n_bricks) == 3)
                 x += 150;
         }
     }
@@ -214,12 +227,12 @@ void drawInGameTexture() {
 
     // Breakable Bricks (if brick still have durability then draw a brick)
     for (int i = 0; i < n_bricks; i++)
-        if (bricks[i].getDurability())
-            bricks[i].drawTexture();
+        if (bricks[i]->getDurability())
+            bricks[i]->drawTexture();
 
     // Barrier Bricks
-    for (int i = 0; i < n_barrier_bricks; i++)
-        barrier_bricks[i].drawTexture();
+    for (int i = n_bricks; i < n_bricks + n_barrier_bricks; i++)
+        bricks[i]->drawTexture();
 
     // In-game Frame
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
@@ -272,34 +285,38 @@ void spreadBalls() {
 }
 
 // Called when the brick is break
-void handleBrickEvent(Brick &brick) {
+void handleBrickEvent(Brick *brick) {
     // Play hit sound
     cpPlaySound(hit_brick_sound);
 
     // Decrease durability by 1
-    brick.decreaseDurability();
+    brick->decreaseDurability();
 
     // + Score when brick is break
-    if (!brick.getDurability()) {
-        score += brick.getScore();
+    if (!brick->getDurability()) {
+        score += brick->getScore();
         n_breaks++;
-        // Brick Effects
-        if (brick.getBrickType() == MissileAmmo) {
-            missiles_left += 15;
-        } else if (brick.getBrickType() == BallsSpread) {
-            spreadBalls();
-        } else if (brick.getBrickType() == BallSpeedIncrease) {
-            ball_vel += 3;
-            for (int i = 0; i < MAX_BALLS; i++) {
-                if (balls[i].isOnScreen()) {
-                    if (balls[i].getVelX() < 0)
-                        balls[i].setVelX(balls[i].getVelX() - 3);
-                    else
-                        balls[i].setVelX(balls[i].getVelX() + 3);
-                    if (balls[i].getVelY() < 0)
-                        balls[i].setVelY(balls[i].getVelY() - 3);
-                    else
-                        balls[i].setVelY(balls[i].getVelY() + 3);
+        // Brick Item Effect
+        ItemBrick *item_brick = dynamic_cast<ItemBrick*>(brick);
+        if (item_brick) {
+            ItemType type = item_brick->getItemType();
+            if (type == MissileAmmo) {
+                missiles_left += 15;
+            } else if (type == BallsSpread) {
+                spreadBalls();
+            } else if (type == BallSpeedIncrease) {
+                ball_vel += 3;
+                for (int i = 0; i < MAX_BALLS; i++) {
+                    if (balls[i].isOnScreen()) {
+                        if (balls[i].getVelX() < 0)
+                            balls[i].setVelX(balls[i].getVelX() - 3);
+                        else
+                            balls[i].setVelX(balls[i].getVelX() + 3);
+                        if (balls[i].getVelY() < 0)
+                            balls[i].setVelY(balls[i].getVelY() - 3);
+                        else
+                            balls[i].setVelY(balls[i].getVelY() + 3);
+                    }
                 }
             }
         }
@@ -325,6 +342,9 @@ void showInGameScene() {
     int missile_tick = 0;
     // Store collision side
     CollisionSide side;
+
+    // Init bricks
+    bricks = new Brick*[MAX_BRICKS];
 
     // Set paddle texture
     paddle.setTexture(paddle_texture);
@@ -491,12 +511,12 @@ void showInGameScene() {
                         missiles[i].setVisible(false);
                     else {
                         // When missile hit a barrier brick
-                        for (int n = 0; n < n_barrier_bricks; n++)
-                            if (collide(missiles[i], barrier_bricks[n]))
+                        for (int n = n_bricks; n < n_bricks + n_barrier_bricks; n++)
+                            if (collide(missiles[i], *bricks[n]))
                                 missiles[i].setVisible(false);
                         // When missile hit a breakable brick
                         for (int n = 0; n < n_bricks; n++) {
-                            if (bricks[n].getDurability() && collide(missiles[i], bricks[n])) {
+                            if (bricks[n]->getDurability() && collide(missiles[i], *bricks[n])) {
                                 missiles[i].setVisible(false);
                                 handleBrickEvent(bricks[n]);
                                 // Bonus score
@@ -552,66 +572,32 @@ void showInGameScene() {
                         balls[i].invertVelY();
                     }
 
-                    // Check all barrier bricks
-                    for (int n = 0; n < n_barrier_bricks; n++) {
-                        // When ball hit a barrier brick
-                        if ((side = collide(barrier_bricks[n], balls[i]))) {
-                            // Play hit sound
-                            cpPlaySound(hit_brick_sound);
-                            // Prevent ball get into barrier brick
-                            switch (side) {
-                                case CollideTop:
-                                    balls[i].setY(barrier_bricks[n].getY() - balls[i].getHeight() - 1);
-                                    // Set ball to go up only
-                                    balls[i].setVelY(-fabs(balls[i].getVelY()));
-                                    break;
-                                case CollideBottom:
-                                    balls[i].setY(barrier_bricks[n].getY() + bricks[n].getHeight() + 1);
-                                    // Set ball to go down only
-                                    balls[i].setVelY(fabs(balls[i].getVelY()));
-                                    break;
-                                case CollideLeft:
-                                    balls[i].setX(barrier_bricks[n].getX() - balls[i].getWidth() - 1);
-                                    // Set ball to go only left side
-                                    balls[i].setVelX(-fabs(balls[i].getVelX()));
-                                    break;
-                                case CollideRight:
-                                    balls[i].setX(barrier_bricks[n].getX() + bricks[n].getWidth() + 1);
-                                    // Set ball to go only right side
-                                    balls[i].setVelX(fabs(balls[i].getVelX()));
-                                    break;
-                                // suppress compiler warning
-                                default:
-                                    break;
-                            }
-                        }
-                    }
-
-                    // Check all breakable bricks
-                    for (int n = 0; n < n_bricks; n++) {
+                    // Check all bricks
+                    for (int n = 0; n < n_bricks + n_barrier_bricks; n++) {
                         // When ball hit a breakable brick
-                        if (bricks[n].getDurability() && (side = collide(bricks[n], balls[i]))) {
+                        if (bricks[n]->getDurability() && (side = collide(*bricks[n], balls[i]))) {
+
                             handleBrickEvent(bricks[n]);
 
                             // Prevent ball get into brick
                             switch (side) {
                                 case CollideTop:
-                                    balls[i].setY(bricks[n].getY() - balls[i].getHeight() - 1);
+                                    balls[i].setY(bricks[n]->getY() - balls[i].getHeight() - 1);
                                     // Set ball to go up only
                                     balls[i].setVelY(-fabs(balls[i].getVelY()));
                                     break;
                                 case CollideBottom:
-                                    balls[i].setY(bricks[n].getY() + bricks[n].getHeight() + 1);
+                                    balls[i].setY(bricks[n]->getY() + bricks[n]->getHeight() + 1);
                                     // Set ball to go down only
                                     balls[i].setVelY(fabs(balls[i].getVelY()));
                                     break;
                                 case CollideLeft:
-                                    balls[i].setX(bricks[n].getX() - balls[i].getWidth() - 1);
+                                    balls[i].setX(bricks[n]->getX() - balls[i].getWidth() - 1);
                                     // Set ball to go only left side
                                     balls[i].setVelX(-fabs(balls[i].getVelX()));
                                     break;
                                 case CollideRight:
-                                    balls[i].setX(bricks[n].getX() + bricks[n].getWidth() + 1);
+                                    balls[i].setX(bricks[n]->getX() + bricks[n]->getWidth() + 1);
                                     // Set ball to go only right side
                                     balls[i].setVelX(fabs(balls[i].getVelX()));
                                     break;

@@ -3,25 +3,19 @@
 
 #include "object.h"
 
-typedef enum {NoEffect, Barrier, BallsSpread, BallSpeedIncrease, MissileAmmo} BrickType;
-
 class Brick: public Object {
-    protected:
+    private:
         int durability_, score_;
-        Texture crack_texture_;
-        BrickType type_;
+    protected:
+        Brick(int durability);
     public:
         Brick();
 
         void setScore(int score);
-        void setDurability(int durability);
-        void decreaseDurability();
-        void setCrackTexture(Texture crack_texture);
-        void setBrickType(BrickType type);
+        virtual void decreaseDurability();
 
         int getScore();
         int getDurability();
-        BrickType getBrickType();
 };
 
 #endif // BRICK_H
