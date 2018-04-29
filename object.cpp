@@ -1,3 +1,4 @@
+#include <cmath>
 #include "headers/object.h"
 
 Object::Object(float width, float height) :
@@ -76,4 +77,34 @@ void Object::drawTexture() {
 void Object::move() {
     x_ += velX_;
     y_ += velY_;
+}
+
+CollisionSide Object::isCollide(Object object) {
+    /*  Collision Detection between this object and another object
+    Return collision side of this object  */
+
+    float w = (getWidth() + object.getWidth()) / 2;
+    float h = (getHeight() + object.getHeight()) / 2;
+    float dx = (getX() + getWidth() / 2) - (object.getX() + object.getWidth() / 2);
+    float dy = (getY() + getHeight() / 2) - (object.getY() + object.getHeight() / 2);
+
+    // Collision detect
+    if (fabs(dx) <= w && fabs(dy) <= h) {
+        float wy = w * dy;
+        float hx = h * dx;
+
+        if (wy > hx) {
+            if (wy > -hx)
+                return CollideTop;
+            else
+                return CollideRight;
+        } else {
+            if (wy > -hx)
+                return CollideLeft;
+            else
+                return CollideBottom;
+        }
+    }
+    // No collision detect
+    return NoCollide;
 }

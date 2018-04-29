@@ -34,7 +34,6 @@ Ball balls[MAX_BALLS];
 Brick **bricks;
 Missile missiles[MAX_MISSILES];
 
-typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
 // Animate dim screen at start (255 to 0)
 int opacity;
 // Store current game score, increase animate score & animation delay tick
@@ -58,39 +57,10 @@ bool is_game_start;
 //   true when all bricks in the last level is destroy
 bool is_all_clear;
 
-/*  Collision Detection between two objects a and b
-    Return collision side of objects a  */
-CollisionSide collide(Object a, Object b) {
-    float w = (a.getWidth() + b.getWidth()) / 2;
-    float h = (a.getHeight() + b.getHeight()) / 2;
-    float dx = (a.getX() + a.getWidth() / 2) - (b.getX() + b.getWidth() / 2);
-    float dy = (a.getY() + a.getHeight() / 2) - (b.getY() + b.getHeight() / 2);
-
-    // Collision detect
-    if (fabs(dx) <= w && fabs(dy) <= h) {
-        float wy = w * dy;
-        float hx = h * dx;
-
-        if (wy > hx) {
-            if (wy > -hx)
-                return CollideTop;
-            else
-                return CollideRight;
-        } else {
-            if (wy > -hx)
-                return CollideLeft;
-            else
-                return CollideBottom;
-        }
-    }
-    // No collision detect
-    return NoCollide;
-}
-
 void deleteBricks() {
     for (int i = 0; i < n_bricks + n_barrier_bricks; i++)
         delete bricks[i];
-    delete bricks;
+    delete [] bricks;
 }
 
 void initBricksLevel(int level) {
@@ -408,6 +378,11 @@ void showInGameScene() {
         balls[0].setY(paddle.getY() - balls[0].getHeight() - 1);
         balls[0].setIsOnScreen(true);
 
+        // Free old bricks
+        if (level > 1)
+            for (int i = 0; i < n_bricks + n_barrier_bricks; i++)
+                delete bricks[i];
+
         // Init bricks for level 1
         initBricksLevel(level);
 
@@ -512,11 +487,11 @@ void showInGameScene() {
                     else {
                         // When missile hit a barrier brick
                         for (int n = n_bricks; n < n_bricks + n_barrier_bricks; n++)
-                            if (collide(missiles[i], *bricks[n]))
+                            if (missiles[i].isCollide(*bricks[n]))
                                 missiles[i].setVisible(false);
                         // When missile hit a breakable brick
                         for (int n = 0; n < n_bricks; n++) {
-                            if (bricks[n]->getDurability() && collide(missiles[i], *bricks[n])) {
+                            if (bricks[n]->getDurability() && missiles[i].isCollide(*bricks[n])) {
                                 missiles[i].setVisible(false);
                                 handleBrickEvent(bricks[n]);
                                 // Bonus score
@@ -575,7 +550,7 @@ void showInGameScene() {
                     // Check all bricks
                     for (int n = 0; n < n_bricks + n_barrier_bricks; n++) {
                         // When ball hit a breakable brick
-                        if (bricks[n]->getDurability() && (side = collide(*bricks[n], balls[i]))) {
+                        if (bricks[n]->getDurability() && (side = bricks[n]->isCollide(balls[i]))) {
 
                             handleBrickEvent(bricks[n]);
 
@@ -609,7 +584,7 @@ void showInGameScene() {
                     }
 
                     // When ball hit the paddle
-                    if ((side = collide(paddle, balls[i]))) {
+                    if ((side = paddle.isCollide(balls[i]))) {
                         cpPlaySound(hit_paddle_sound);
 
                         // Set new ball angle related to collide position on paddle

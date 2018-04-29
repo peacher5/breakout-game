@@ -3,6 +3,8 @@
 
 #include "cp_functions.h"
 
+typedef enum {NoCollide, CollideTop, CollideBottom, CollideLeft, CollideRight} CollisionSide;
+
 class Object {
     protected:
         float x_, y_, width_, height_, velX_, velY_;;
@@ -36,6 +38,8 @@ class Object {
         void drawTexture();
 
         void move();
+
+        CollisionSide isCollide(Object object);
 };
 
 #endif // OBJECT_H
