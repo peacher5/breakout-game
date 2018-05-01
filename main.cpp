@@ -24,6 +24,7 @@ Texture blue_brick_texture, stone_brick_texture, crack_stone_brick_texture;
 Texture orange_brick_texture, red_brick_texture, yellow_brick_texture, barrier_brick_texture;
 Texture blue_item_brick_texture, orange_item_brick_texture, red_item_brick_texture, yellow_item_brick_texture;
 Texture missile_texture, missiles_left_icon_texture;
+Texture level1_icon_texture, level2_icon_texture;
 
 // Pause Menu
 Texture pause_menu_bg_texture;
@@ -128,6 +129,9 @@ void loadResources() {
 
     missile_texture = loadTexture("textures/missile.png");
     missiles_left_icon_texture = loadTexture("textures/missiles_left_icon.png");
+
+    level1_icon_texture = loadTexture("textures/level_1.png");
+    level2_icon_texture = loadTexture("textures/level_2.png");
 
     // Pause Menu
     pause_menu_bg_texture = loadTexture("textures/pause_menu_overlay.png");

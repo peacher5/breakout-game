@@ -20,6 +20,7 @@ extern Texture missiles_left_icon_texture, barrier_brick_texture;
 extern Texture orange_brick_texture, red_brick_texture, yellow_brick_texture;
 extern Texture blue_item_brick_texture, orange_item_brick_texture;
 extern Texture red_item_brick_texture, yellow_item_brick_texture;
+extern Texture level1_icon_texture, level2_icon_texture;
 extern GameScene scene;
 extern bool quit;
 
@@ -35,7 +36,11 @@ Brick **bricks;
 Missile missiles[MAX_MISSILES];
 
 // Animate dim screen at start (255 to 0)
-int opacity;
+int screen_opacity;
+// Animate level badge fade out
+float level_badge_opacity;
+// Store current level (1-2)
+int level;
 // Store current game score, increase animate score & animation delay tick
 int score, animate_score, animate_tick;
 // Number of balls & missiles left
@@ -207,7 +212,7 @@ void drawInGameTexture() {
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
 
     // Animate increase score text
-    if (animate_tick && animate_score < score) {
+    if (animate_score < score - 100 || (animate_tick && animate_score < score)) {
         animate_score++;
         animate_tick = 0;
     } else
@@ -219,12 +224,23 @@ void drawInGameTexture() {
 
     // Release ball hint text
     if (!is_game_start)
-        cpDrawText(255, 255, 255, 230, WINDOW_WIDTH / 2, 666, "กด Spacebar เพื่อปล่อยลูก", rsu_24_font, true);    
+        cpDrawText(255, 255, 255, 230, WINDOW_WIDTH / 2, 666, "กด Spacebar เพื่อปล่อยลูก", rsu_24_font, true);
+
+    // Level badge
+    if (level_badge_opacity > 0) {
+        if (level == 1)
+            cpDrawTextureAlpha(315, 335, level1_icon_texture->width, level1_icon_texture->height,
+                            level1_icon_texture, level_badge_opacity);
+        else if (level == 2)
+            cpDrawTextureAlpha(306, 335, level2_icon_texture->width, level2_icon_texture->height,
+                            level2_icon_texture, level_badge_opacity);
+        level_badge_opacity -= 1.5;
+    }
 
     // Animate dim scene screen at start of the scene
-    if (opacity > 0) {
-        cpDrawTextureAlpha(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, black_bg_texture, opacity);
-        opacity -= 4;
+    if (screen_opacity > 0) {
+        cpDrawTextureAlpha(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, black_bg_texture, screen_opacity);
+        screen_opacity -= 4;
     } else {
         cpDrawTextureAlpha(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, black_bg_texture, 0);
     }
@@ -353,11 +369,14 @@ void showInGameScene() {
     animate_score = 0;
 
     // Init alpha value to animate screen dimming at start
-    opacity = 255;
+    screen_opacity = 255;
 
     animate_tick = 0;
 
-    for (int level = 1; level <= 2; level++) {
+    for (level = 1; level <= 2; level++) {
+        // Reset level badge opacity to 100%
+        level_badge_opacity = 255;
+
         // Reset Missiles
         for (int i = 0; i < 30; i++)
             missiles[i].setVisible(false);
