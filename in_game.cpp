@@ -64,7 +64,6 @@ void deleteBricks() {
 }
 
 void initBricksLevel(int level) {
-    BarrierBrick *barrier_brick;
     ItemBrick *item_brick;
     StoneBrick *stone_brick;
 
@@ -312,6 +311,11 @@ void showInGameScene() {
     int missile_tick = 0;
     // Store collision side
     CollisionSide side;
+    // Store time for RNG
+    time_t t;
+
+    // Init RNG for start ball angle
+    srand((unsigned) time(&t));
 
     // Init bricks
     bricks = new Brick*[MAX_BRICKS];
@@ -365,7 +369,7 @@ void showInGameScene() {
         ball_vel = 8;
 
         // Reset balls velocity in x/y pos (0 degree = go up straight)
-        bounce_angle = 0;
+        bounce_angle = fmod(rand(), MAX_BOUNCE_ANGLE * 2) - MAX_BOUNCE_ANGLE;
         for (int i = 0; i < MAX_BALLS; i++) {
             balls[i].setVelX(ball_vel * sin(bounce_angle));
             balls[i].setVelY(-ball_vel * cos(bounce_angle));
@@ -637,7 +641,7 @@ void showInGameScene() {
                 balls[0].setY(paddle.getY() - balls[0].getHeight() - 1);
                 // Reset ball velocity in x/y pos
                 ball_vel = 8;
-                bounce_angle = 0;
+                bounce_angle = bounce_angle = fmod(rand(), MAX_BOUNCE_ANGLE * 2) - MAX_BOUNCE_ANGLE;
                 balls[0].setVelX(ball_vel * sin(bounce_angle));
                 balls[0].setVelY(-ball_vel * cos(bounce_angle));
             }
