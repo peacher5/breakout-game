@@ -247,7 +247,7 @@ void drawInGameTexture() {
 }
 
 void spreadBalls() {
-    float angle = 0;
+    float angle = 11.25;
     int n_spread_balls = 15;
     for (int i = 0; i < MAX_BALLS && n_spread_balls; i++) {
         if (!balls[i].isOnScreen()) {
@@ -262,7 +262,7 @@ void spreadBalls() {
             n_balls++, n_spread_balls--;
             angle += 22.5;
             if (angle >= 360)
-                angle = 0;
+                angle = 11.25;
             else if (fmod(angle, 90) == 0)
                 angle += 22.5;
         }
