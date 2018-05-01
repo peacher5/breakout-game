@@ -181,9 +181,12 @@ int main(int argc, char *args[]) {
                 break;
             case InGame:
                 showInGameScene();
+                if (scene != GameOver)
+                    deleteBricks();
                 break;
             case GameOver:
                 showGameOverScene();
+                deleteBricks();
                 break;
             case HighScore:
                 showHighScoreScene();

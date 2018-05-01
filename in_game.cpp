@@ -42,7 +42,7 @@ float level_badge_opacity;
 // Store current level (1-2)
 int level;
 // Store current game score, increase animate score & animation delay tick
-int score, animate_score, animate_tick;
+int score, animate_score, animate_score_tick;
 // Number of balls & missiles left
 int balls_left, missiles_left;
 // Start ball speed & start angle
@@ -212,11 +212,11 @@ void drawInGameTexture() {
     cpDrawTexture(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, in_game_frame_texture);
 
     // Animate increase score text
-    if (animate_score < score - 100 || (animate_tick && animate_score < score)) {
+    if (animate_score < score - 100 || (animate_score_tick && animate_score < score)) {
         animate_score++;
-        animate_tick = 0;
+        animate_score_tick = 0;
     } else
-        animate_tick++;
+        animate_score_tick++;
     drawScoreText(animate_score);
 
     // Balls left text
@@ -269,7 +269,7 @@ void spreadBalls() {
     }
 }
 
-// Called when the brick is break
+// Called when an object collide w/ the brick
 void handleBrickEvent(Brick *brick) {
     // Play hit sound
     cpPlaySound(hit_brick_sound);
@@ -364,14 +364,15 @@ void showInGameScene() {
     // Init number of balls left
     balls_left = 2;
 
-    // Init start score
+    // Init start score & reset animate score
     score = 0;
     animate_score = 0;
 
     // Init alpha value to animate screen dimming at start
     screen_opacity = 255;
 
-    animate_tick = 0;
+    // reset tick for animate score text
+    animate_score_tick = 0;
 
     for (level = 1; level <= 2; level++) {
         // Reset level badge opacity to 100%
@@ -387,7 +388,7 @@ void showInGameScene() {
         // Init/Reset ball speed
         ball_vel = 8;
 
-        // Reset balls velocity in x/y pos (0 degree = go up straight)
+        // Reset balls velocity in x/y pos & random start ball angle
         bounce_angle = fmod(rand(), MAX_BOUNCE_ANGLE * 2) - MAX_BOUNCE_ANGLE;
         for (int i = 0; i < MAX_BALLS; i++) {
             balls[i].setVelX(ball_vel * sin(bounce_angle));
@@ -470,6 +471,7 @@ void showInGameScene() {
             }
 
             if (is_game_start && is_spacebar_hold_down && missiles_left) {
+                // To fire missiles once per 10 ticks (~0.16 second)
                 if (missile_tick == 10) {
                     missile_tick = 0;
                     for (int i = 0, amount = 0; i < 30; i++) {
@@ -658,7 +660,7 @@ void showInGameScene() {
                 balls[0].setIsOnScreen(true);
                 balls[0].setX(paddle.getX() + paddle.getWidth() / 2 - balls[0].getWidth() / 2);
                 balls[0].setY(paddle.getY() - balls[0].getHeight() - 1);
-                // Reset ball velocity in x/y pos
+                // Reset ball velocity in x/y pos & random start ball angle
                 ball_vel = 8;
                 bounce_angle = bounce_angle = fmod(rand(), MAX_BOUNCE_ANGLE * 2) - MAX_BOUNCE_ANGLE;
                 balls[0].setVelX(ball_vel * sin(bounce_angle));
