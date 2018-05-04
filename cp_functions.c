@@ -86,8 +86,8 @@ void cpFreeSound(Sound sound)
 
 int cpInit(const char *title, int win_width, int win_height)
 {
-//    freopen("CON", "w", stdout);
-//    freopen("CON", "w", stderr);
+   freopen("CON", "w", stdout);
+   freopen("CON", "w", stderr);
 
    if (SDL_Init(SDL_INIT_EVERYTHING) == -1)
       return False;

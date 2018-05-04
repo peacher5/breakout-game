@@ -158,8 +158,6 @@ void loadResources() {
 
 int main(int argc, char *args[]) {
 
-    cout << "Starting..." << endl;
-
     if (!cpInit(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT)) {
         cout << "Window Initialization Failed!" << endl;
         exit(1);
