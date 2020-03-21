@@ -1,10 +1,8 @@
 #include <stdlib.h>
 #include "headers/cp_functions.h"
 
-#define True  1
-#define False 0
-
-SDL_Surface *screen = NULL;
+SDL_Window *window = NULL;
+SDL_GLContext context;
 unsigned int message_texture;
 
 Texture cpLoadTexture(const char *filename)
@@ -12,12 +10,15 @@ Texture cpLoadTexture(const char *filename)
    int type;
    Texture texture;
 
-	SDL_Surface *image = IMG_Load(filename);
-	if (image == NULL)
-		return NULL;
+   SDL_Surface *image = IMG_Load(filename);
+   if (!image) {
+      fprintf(stderr, "IMG_Load %s failed!\n", filename);
+      return NULL;
+   }
 
-   texture = (Texture)malloc(sizeof(Texture *));
-   if (texture == NULL) {
+   texture = (Texture)malloc(sizeof(TextureStruct));
+   if (!texture) {
+      fprintf(stderr, "%s allocation failed!\n", filename);
       SDL_FreeSurface(image);
       return NULL;
    }
@@ -34,7 +35,7 @@ Texture cpLoadTexture(const char *filename)
    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
    glTexImage2D(GL_TEXTURE_2D, 0, type, image->w, image->h, 0, type,
-   	GL_UNSIGNED_BYTE, image->pixels);
+                GL_UNSIGNED_BYTE, image->pixels);
 
    texture->tex_id = tex_id;
    texture->width = image->w;
@@ -84,27 +85,37 @@ void cpFreeSound(Sound sound)
    Mix_FreeChunk(sound);
 }
 
+void cpCheckSDLError(int line)
+{  const char *error = SDL_GetError();
+
+   if (error[0]) {
+      fprintf(stderr, "SDL Error: %s\nLine: %d!\n", error, line);
+      SDL_ClearError();
+   }
+}
+
 int cpInit(const char *title, int win_width, int win_height)
 {
-   freopen("CON", "w", stdout);
-   freopen("CON", "w", stderr);
-
    if (SDL_Init(SDL_INIT_EVERYTHING) == -1)
       return False;
 
-   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-   SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
-   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-   SDL_WM_SetCaption(title, NULL);
-
-   screen = SDL_SetVideoMode(win_width, win_height, 32, SDL_OPENGL);
-   if (screen == NULL)
+   window = SDL_CreateWindow(title,
+                             SDL_WINDOWPOS_CENTERED,
+                             SDL_WINDOWPOS_CENTERED,
+                             win_width, win_height,
+                             SDL_WINDOW_OPENGL);
+   if (!window)
       return False;
+
+   context = SDL_GL_CreateContext(window);
+   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+   SDL_GL_SetSwapInterval(1);
+
+   int flags = IMG_INIT_JPG | IMG_INIT_PNG;
+   if (!(IMG_Init(flags) & flags)) {
+      fprintf(stderr, "IMG_Init failed: %s!\n", IMG_GetError());
+      return False;
+   }
 
    if (TTF_Init() == -1)
       return False;
@@ -128,12 +139,15 @@ int cpInit(const char *title, int win_width, int win_height)
 
 void cpCleanUp()
 {
+   Mix_CloseAudio();
+   TTF_Quit();
+   IMG_Quit();
    SDL_Quit();
 }
 
 void cpSwapBuffers()
 {
-   SDL_GL_SwapBuffers();
+   SDL_GL_SwapWindow(window);
 }
 
 void cpDelay(int millisecond)
@@ -147,16 +161,20 @@ int cbPollEvent(Event *event)
 }
 
 void cpDrawTextureRGBA(int r, int g, int b, int a,
-   int x, int y, int width, int height, Texture texture)
+                       int x, int y, int width, int height, Texture texture)
 {
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, texture->tex_id);
    glColor4ub(r, g, b, a);
    glBegin(GL_QUADS);
-      glTexCoord2d(0, 0); glVertex2f(x, y);
-      glTexCoord2d(1, 0); glVertex2f(x + width, y);
-      glTexCoord2d(1, 1); glVertex2f(x + width, y + height);
-      glTexCoord2d(0, 1); glVertex2f(x, y + height);
+   glTexCoord2d(0, 0);
+   glVertex2f(x, y);
+   glTexCoord2d(1, 0);
+   glVertex2f(x + width, y);
+   glTexCoord2d(1, 1);
+   glVertex2f(x + width, y + height);
+   glTexCoord2d(0, 1);
+   glVertex2f(x, y + height);
    glEnd();
    glDisable(GL_TEXTURE_2D);
 }
@@ -172,14 +190,14 @@ void cpDrawTextureAlpha(int x, int y, int width, int height, Texture texture, in
 }
 
 void cpDrawText(int r, int g, int b, int a,
-   int x, int y, const char *text, Font font, int center)
+                int x, int y, const char *text, Font font, int center)
 {  SDL_Surface *message;
    SDL_Color color = {r, g, b};
    SDL_Rect offset;
    int texture_format, xb, xe, yb, ye;
 
    message = TTF_RenderUTF8_Blended(font, text, color);
-   if (message == NULL)
+   if (!message)
       return;
 
    if (message->format->BytesPerPixel == 3)
@@ -188,10 +206,10 @@ void cpDrawText(int r, int g, int b, int a,
       texture_format = GL_RGBA;
 
    if (center) {
-      xb = -message->w/2;
-      xe = message->w/2;
-      yb = -message->h/2;
-      ye = message->h/2;
+      xb = -message->w / 2;
+      xe = message->w / 2;
+      yb = -message->h / 2;
+      ye = message->h / 2;
    }
    else {
       xb = 0;
@@ -203,13 +221,17 @@ void cpDrawText(int r, int g, int b, int a,
    glBindTexture(GL_TEXTURE_2D, message_texture);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
    glTexImage2D(GL_TEXTURE_2D, 0, texture_format, message->w, message->h, 0,
-      texture_format, GL_UNSIGNED_BYTE, message->pixels);
+                texture_format, GL_UNSIGNED_BYTE, message->pixels);
    glColor4ub(r, g, b, a);
    glBegin(GL_QUADS);
-      glTexCoord2d(0, 0); glVertex2f(x + xb, y + yb);
-      glTexCoord2d(1, 0); glVertex2f(x + xe, y + yb);
-      glTexCoord2d(1, 1); glVertex2f(x + xe, y + ye);
-      glTexCoord2d(0, 1); glVertex2f(x + xb, y + ye);
+   glTexCoord2d(0, 0);
+   glVertex2f(x + xb, y + yb);
+   glTexCoord2d(1, 0);
+   glVertex2f(x + xe, y + yb);
+   glTexCoord2d(1, 1);
+   glVertex2f(x + xe, y + ye);
+   glTexCoord2d(0, 1);
+   glVertex2f(x + xb, y + ye);
    glEnd();
    glDisable(GL_TEXTURE_2D);
 

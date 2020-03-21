@@ -2,7 +2,7 @@ CC = gcc
 CXX = g++
 
 CFLAGS =
-LDFLAGS = -L/usr/local/lib -lSDL -lSDLmain -lSDL_ttf -lSDL_image -lSDL_mixer -framework Cocoa -framework OpenGL
+LDFLAGS = -L/usr/local/lib -lSDL2 -lSDL2main -lSDL2_ttf -lSDL2_image -lSDL2_mixer -framework Cocoa -framework OpenGL
 
 OBJECTS = cp_functions.o main.o mouse.o object.o ball.o brick.o in_game.o game_over.o scoreboard.o missile.o\
           main_menu.o button.o pause_menu.o high_score.o barrier_brick.o item_brick.o stone_brick.o

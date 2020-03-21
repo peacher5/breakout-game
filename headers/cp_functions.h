@@ -6,29 +6,33 @@ extern "C"
 #ifndef __CP_FUNCTIONS_H__
 #define __CP_FUNCTIONS_H__
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_opengl.h>
-#include <SDL/SDL_ttf.h>
-#include <SDL/SDL_image.h>
-#include <SDL/SDL_mixer.h>
+// SDL2 Headers
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 
-#define QUIT      SDL_QUIT
-#define KEYUP     SDL_KEYUP
-#define KEYDOWN   SDL_KEYDOWN
-#define K_ESCAPE  SDLK_ESCAPE
-#define K_LEFT    SDLK_LEFT
-#define K_RIGHT   SDLK_RIGHT
+#define True 1
+#define False 0
 
-typedef TTF_Font  *Font;
+#define QUIT SDL_QUIT
+#define KEYUP SDL_KEYUP
+#define KEYDOWN SDL_KEYDOWN
+#define K_ESCAPE SDLK_ESCAPE
+#define K_LEFT SDLK_LEFT
+#define K_RIGHT SDLK_RIGHT
+
+typedef TTF_Font *Font;
 typedef Mix_Music *Music;
 typedef Mix_Chunk *Sound;
 typedef SDL_Event Event;
 
-typedef struct texture
-{
-    unsigned int tex_id;
-    int width, height;
-} *Texture;
+typedef struct {
+   unsigned int tex_id;
+   int width, height;
+} TextureStruct;
+typedef TextureStruct *Texture;
 
 Texture cpLoadTexture(const char *filename);
 Font cpLoadFont(const char *font_file, int font_size);
@@ -44,11 +48,12 @@ void cpCleanUp();
 void cpSwapBuffers();
 void cpDelay(int millisecond);
 int cbPollEvent(Event *event);
-void cpDrawTextureRGBA(int r, int g, int b, int a, int x, int y, int width, int height, Texture texture);
+void cpDrawTextureRGBA(int r, int g, int b, int a,
+                   int x, int y, int width, int height, Texture texture);
 void cpDrawTexture(int x, int y, int width, int height, Texture texture);
 void cpDrawTextureAlpha(int x, int y, int width, int height, Texture texture, int a);
 void cpDrawText(int r, int g, int b, int a,
-   int x, int y, const char *text, Font font, int center);
+                int x, int y, const char *text, Font font, int center);
 void cpClearScreen();
 
 #endif // __CP_FUNCTIONS_H__
